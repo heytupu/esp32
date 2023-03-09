@@ -19,6 +19,7 @@
     "Github" : {
         "user" : "heytupu",
         "repo" : "esp32",
+        "secret_access_token" : "",
     },
     "Sensors" : {
         "SCD30" : {

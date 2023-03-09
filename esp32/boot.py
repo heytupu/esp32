@@ -4,6 +4,7 @@ import machine
 import network
 
 print("\n-------------------- Started Bootloader ESP32 --------------------\n")
+print("JOOOOOOOOO hope it works")
 
 try:
     with open("configs/config.json", "r") as json_file:
