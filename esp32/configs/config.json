@@ -29,6 +29,10 @@
             "Pin" : [25, 26, 27, 14],
             "Boolean" : 1,
             "Name" : ["pipe_sensor_1", "pipe_sensor_2", "pipe_sensor_3", "pipe_sensor_4"]
+            },
+        "AM2302" : {
+            "Pin" : 27,
+            "Boolean" : 1
             }
     },
     "Device_settings" : {
