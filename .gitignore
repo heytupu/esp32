@@ -1,1 +1,5 @@
 esp32/configs/config.json
+esp32/cert/*
+esp32/cert/*.pem*
+esp32/cert/*.key*
+esp32/cert/*.crt*
