@@ -1,6 +1,7 @@
 """Application Script"""
 import json
 import machine
+import dht
 import network
 import ntptime
 import time
@@ -31,11 +32,13 @@ UTC_OFFSET = CFG["Device_settings"]["UTC_Offset"]
 SCD30_BOOLEAN = CFG["Sensors"]["SCD30"]["Boolean"]
 MOISTURE_BOOLEAN = CFG["Sensors"]["Moisture_Sensor"]["Boolean"]
 DS18B20_BOOLEAN = CFG["Sensors"]["DS18B20"]["Boolean"]
+AM2302_BOOLEAN = CFG["Sensors"]["AM2302"]["Boolean"]
 
 # Sets which pins the sensors use. Each sensor uses a different number of pins.  
 SCD30_PIN = CFG["Sensors"]["SCD30"]["Pin"]
 #MOISTURE_PIN = CFG["Sensors"]["Moisture_Sensor"]["Pin"]
 DS18B20_PIN = CFG["Sensors"]["DS18B20"]["Pin"]
+AM2302_PIN = CFG["Sensors"]["AM2302"]["Pin"]
 # This is used to give names to each sensor when we publish the data.
 DS18B20_NAME = CFG["Sensors"]["DS18B20"]["Name"]
 
@@ -92,6 +95,21 @@ def connect_iot_core() -> MQTTClient:
 
     return mqtt
 
+def AM2302_sensor_data():
+    """Connect to AM2302 sensor and return temperature and humidity."""
+    d = dht.DHT22(machine.Pin(AM2302_PIN))
+    data = {}
+    
+    d.measure()
+    temperature = d.temperature()
+    humidity = d.humidity()
+    
+    data = {
+            "temperature" : temperature,
+            "humidity" : humidity
+            }
+    
+    return data
 
 def data_from_SCD30():
     """Connect to SCD30 and return temperature, humidity, and co2."""
@@ -251,6 +269,9 @@ if __name__ == "__main__":
         if DS18B20_BOOLEAN:
             DS18B20_data = DS18B20_sensor_data()
             data.update(DS18B20_data)
+        if AM2302_BOOLEAN:
+            AM2302_data = AM2302_sensor_data()
+            data.update(AM2302_data)
 
         # Push the data to the MQTT broker in AWS Iot Core.
         publish(mqtt_client, "ESP32/Sensors", json.dumps(data))
