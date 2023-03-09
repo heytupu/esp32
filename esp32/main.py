@@ -8,6 +8,7 @@ from umqtt.simple import MQTTClient
 import onewire, ds18x20 
 
 from scd30 import SCD30
+import ugit
 
 # Global settings from config file.
 SSID = CFG["Network"]["SSID"]
@@ -231,7 +232,8 @@ if __name__ == "__main__":
         ntptime.settime()
     except:
         print("Setting current time failed.")
-
+    
+    starting_time = time.time()
     while True:
         data = {
             "datetime": get_datetime(),
@@ -255,7 +257,10 @@ if __name__ == "__main__":
 
         # Control the interval of publishing data.
         time.sleep(TIME_INTERVAL)
-
+        
+        # if (time.time() - starting_time) > (7 * 24 * 60 * 60):
+        if (time.time() - starting_time) > (3 * 60):
+            ugit.update()
 
 # Firmware Notes:
 """
