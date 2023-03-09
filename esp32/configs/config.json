@@ -1,0 +1,39 @@
+{
+    "Network" : {
+        "SSID" : "",
+        "PASS" : ""
+    },
+    "SCD30_offsets" : {
+        "tempOffset": 0,
+        "co2Offset": 0,
+        "humidityOffset": 0
+    },
+    "AWS_IOT_core" : {
+        "THING_NAME" : "",
+        "TOPIC" : "",
+        "ENDPOINT" : "",
+        "ROOT_CA" : "cert/AmazonRootCA1.pem",
+        "CERTIFICATE" : "cert/certificate.pem.crt",
+        "PRIVATE_KEY" : "cert/private.pem.key"
+    },
+    "Sensors" : {
+        "SCD30" : {
+            "Pin" : [22, 21],
+            "Boolean" : 0
+            },
+        "Moisture_Sensor" : {
+            "Pin" : [0, 0, 0, 0],
+            "Boolean" : 0
+            },
+        "DS18B20" : {
+            "Pin" : [25, 26, 27, 14],
+            "Boolean" : 1,
+            "Name" : ["pipe_sensor_1", "pipe_sensor_2", "pipe_sensor_3", "pipe_sensor_4"]
+            }
+    },
+    "Device_settings" : {
+        "Time_Interval" : 60,
+        "location": "headquarter",
+        "UTC_Offset" : 0
+    }
+}
