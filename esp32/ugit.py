@@ -8,7 +8,9 @@ import machine
 import time
 import network
 
+from boot import CFG
 global internal_tree
+
 
 SSID = CFG["Network"]["SSID"]
 PASS = CFG["Network"]["PASS"]
