@@ -1,7 +1,7 @@
 {
     "Network" : {
-        "SSID" : "mycelium",
-        "PASS" : "tuputastic2022!"
+        "SSID" : "",
+        "PASS" : "",
     },
     "SCD30_offsets" : {
         "tempOffset": 0,

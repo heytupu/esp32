@@ -18,7 +18,7 @@ PASS = CFG["Network"]["PASS"]
 # Repository must be public if no personal access token is supplied
 GITHUB_USER = CFG["Github"]["user"]
 GITHUB_REPO = CFG["Github"]["repo"]
-# REPO_ACCESS_TOKEN = open(CFG["Github"]["secret_access_token"], "r").read()
+REPO_ACCESS_TOKEN = open(CFG["Github"]["secret_access_token"], "r").read()
 
 # Specify the files that are uneffected by OTA updates.
 IGNORE_FILES = [
