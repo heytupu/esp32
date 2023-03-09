@@ -16,6 +16,10 @@
         "CERTIFICATE" : "cert/certificate.pem.crt",
         "PRIVATE_KEY" : "cert/private.pem.key"
     },
+    "Github" : {
+        "user" : "heytupu",
+        "repo" : "esp32",
+    },
     "Sensors" : {
         "SCD30" : {
             "Pin" : [22, 21],
