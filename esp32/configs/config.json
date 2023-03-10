@@ -23,7 +23,7 @@
     },
     "Sensors" : {
         "SCD30" : {
-            "Pin" : [22, 21],
+            "Pin" : [0, 0],
             "Boolean" : 0
             },
         "Moisture_Sensor" : {
@@ -31,13 +31,13 @@
             "Boolean" : 0
             },
         "DS18B20" : {
-            "Pin" : [25, 26, 27, 14],
-            "Boolean" : 1,
+            "Pin" : [0, 0, 0, 0],
+            "Boolean" : 0,
             "Name" : ["pipe_sensor_1", "pipe_sensor_2", "pipe_sensor_3", "pipe_sensor_4"]
             },
         "AM2302" : {
-            "Pin" : 27,
-            "Boolean" : 1
+            "Pin" : 0,
+            "Boolean" : 0
             }
     },
     "Device_settings" : {
