@@ -11,14 +11,13 @@ import onewire, ds18x20
 from scd30 import SCD30
 from boot import CFG
 
-# import ugit
-
 # Global settings from config file.
 SSID = CFG["Network"]["SSID"]
 PASS = CFG["Network"]["PASS"]
 
 DEVICE_ID = int.from_bytes(machine.unique_id(), "little")
-THING_NAME = CFG["AWS_IOT_core"]["THING_NAME"] + "_" + DEVICE_ID
+
+THING_NAME = f"{CFG["AWS_IOT_core"]["THING_NAME"]}_{str(DEVICE_ID)}"
 TOPIC = CFG["AWS_IOT_core"]["TOPIC"] + "/testing/specfic/device"
 ENDPOINT = CFG["AWS_IOT_core"]["ENDPOINT"]
 
@@ -81,8 +80,6 @@ def message_callback(topic: str, message: str) -> None:
 
 def connect_iot_core() -> MQTTClient:
     """Establish a connection AWS Iot Core MQTT broker."""
-
-    print("stuck?")
     mqtt = MQTTClient(
         THING_NAME,
         ENDPOINT,
@@ -91,11 +88,8 @@ def connect_iot_core() -> MQTTClient:
         ssl=True,
         ssl_params=SSL_CONFIG,
     )
-    print("IOT?")
     try:
-        print("yea")
         mqtt.connect()
-        print("here?")
         mqtt.set_callback(message_callback)
         print(f"Established connection to MQTT broker at {ENDPOINT}.")
     except Exception as e:
@@ -139,7 +133,7 @@ def data_from_SCD30():
         # Take measurement from SCD30
         (co2, temperature, humidity) = scd30.read_measurement()
     except:
-        # If sensor is not connected use zeroes
+        # If sensor is not connected use zeroes.
         missingSCD30 = True
         (co2, temperature, humidity) = (0, 0, 0)
 
@@ -181,8 +175,9 @@ def moisture_sensor_data():
     moistureValue3 = moisture3.read()
     moistureValue4 = moisture4.read()
 
-    # Normalize moisture measurements to a percentage using the maximum sensor
-    # value, 4095.
+    # Normalize moisture measurements to a percentage using the maximum 
+    # sensor value, 4095.
+    #
     # Immersing the sensor in water registers about 62% so it
     # makes sense to set that as the 100% moisture point
     moistureValue1 = 4095 - moistureValue1
@@ -236,8 +231,6 @@ def DS18B20_sensor_data():
                 print(f"{DS18B20_NAME[pin]} failed to respond.")
             except:
                 print("Unknown Pipe Sensor failed.")
-
-    # print(data)
 
     return data
 

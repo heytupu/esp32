@@ -42,5 +42,4 @@ def connect_wifi() -> None:
 
 enable_garbage_collection()
 connect_wifi()
-print("ugit")
 ugit.update()

@@ -6,15 +6,21 @@ import machine
 import time
 import network
 
-try:
-    if __debug__:
-        logger = None
-    else:
+if __debug__:
+    try:
         import logging
+    except ImportError:
+        class Logger:
+            DEBUG = 10
+            def isEnabledFor(self, _):
+                return False
+            def debug(self, msg, *args):
+                pass
+            def getLogger(self, name):
+                return Logger()
+        logging = Logger()
 
-        logger = logging.getLogger(__name__)
-except ImportError:
-    logger = None
+    logger = logging.getLogger(__name__)
 
 global internal_tree
 
