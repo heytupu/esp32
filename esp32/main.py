@@ -18,7 +18,7 @@ SSID = CFG["Network"]["SSID"]
 PASS = CFG["Network"]["PASS"]
 
 DEVICE_ID = int.from_bytes(machine.unique_id(), "little")
-THING_NAME = CFG["AWS_IOT_core"]["THING_NAME"] + "_" + DEVICE_ID
+THING_NAME = CFG["AWS_IOT_core"]["THING_NAME"] # + "_" + DEVICE_ID
 TOPIC = CFG["AWS_IOT_core"]["TOPIC"] + "/testing/specfic/device"
 ENDPOINT = CFG["AWS_IOT_core"]["ENDPOINT"]
 
