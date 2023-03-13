@@ -8,22 +8,40 @@ import machine
 import time
 import network
 
-from boot import CFG
+try:
+    if __debug__:
+        logger = None 
+    else:
+        import logging
+        logger = logging.getLogger(__name__)
+except ImportError:
+    logger = None
+  
 global internal_tree
 
+# try:
+#     with open("configs/config.json", "r") as json_file:
+#         CFG = load(json_file)
+# except Exception as e:
+#     print("Failed to load config file.")
 
-SSID = CFG["Network"]["SSID"]
-PASS = CFG["Network"]["PASS"]
+with open("configs/config.json", "r") as json_file:
+    CFG = json.load(json_file)
+
 
 # Repository must be public if no personal access token is supplied
 GITHUB_USER = CFG["Github"]["user"]
 GITHUB_REPO = CFG["Github"]["repo"]
-REPO_ACCESS_TOKEN = open(CFG["Github"]["secret_access_token"], "r").read()
+# REPO_ACCESS_TOKEN = open(CFG["Github"]["secret_access_token"], "r").read()
+REPO_ACCESS_TOKEN = ""
 
 # Specify the files that are uneffected by OTA updates.
 IGNORE_FILES = [
     "esp32/ugit.py",
+    "esp32/configs",
     "esp32/configs/config.json",
+    "esp32/cert",
+    "esp32/cert/.gitkeep",
     "esp32/cert/AmazonRootCA1.pem",
     "esp32/cert/certificate.pem.crt",
     "esp32/cert/private.pem.key",
@@ -36,14 +54,19 @@ GIT_RAW = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/main/"
 
 def pull(fpath, raw_url: str) -> None:
     """Pulls a single file."""
-    headers = {}
-    if len(REPO_ACCESS_TOKEN) > 0:
-        headers["authorization"] = "bearer %s" % REPO_ACCESS_TOKEN
+    headers = {'User-Agent': 'ugit-heytupu'} 
+    # if len(REPO_ACCESS_TOKEN) > 0:
+        # headers["authorization"] = "bearer %s" % REPO_ACCESS_TOKEN
+    
+    if logger and logger.isEnabledFor(logging.DEBUG):
+        logger.debug(f"Pulling {fpath} to device.")
 
+    print(f"Pulling {fpath} to device.")
     r = urequests.get(raw_url, headers=headers)
     try:
         new_file = open(fpath, "w")
         new_file.write(r.content.decode("utf-8"))
+        r.close()
         new_file.close()
     except:
         try:
@@ -54,23 +77,26 @@ def pull(fpath, raw_url: str) -> None:
 
 def update() -> None:
     """Pulls all the files & overwrites updated files."""
-    tree = parse_git_tree()
+    print("Updating Device.")
+    tree = parse_git_tree() 
     for i in tree:
         fpath = remove_prefix(i["path"])
-        pull(os.path.join(GIT_RAW, i["path"]))
+        gpath = GIT_RAW + i["path"]
+        pull(fpath, gpath)
 
     # Restart the machine after the update
-    machine.reset()
+    # machine.reset()
 
 
 def pull_git_tree() -> dict:
     """Pulls the git tree of the repo."""
-    headers = {}
-    if len(REPO_ACCESS_TOKEN) > 0:
-        headers["authorization"] = "bearer %s" % REPO_ACCESS_TOKEN
-
+    headers = {'User-Agent': 'ugit-heytupu'}
     r = urequests.get(GIT_TREE_URL, headers=headers)
-    return json.loads(r.content.decode("utf-8"))
+    print(r)
+    j = json.loads(r.content.decode("utf-8"))
+    print(j)
+    r.close()
+    return j
 
 
 def parse_git_tree() -> list:

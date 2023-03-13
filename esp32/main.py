@@ -9,7 +9,8 @@ from umqtt.simple import MQTTClient
 import onewire, ds18x20 
 
 from scd30 import SCD30
-import ugit
+from boot import CFG
+# import ugit
 
 # Global settings from config file.
 SSID = CFG["Network"]["SSID"]
@@ -78,6 +79,8 @@ def message_callback(topic: str, message: str) -> None:
 
 def connect_iot_core() -> MQTTClient:
     """Establish a connection AWS Iot Core MQTT broker."""
+
+    print("stuck?")
     mqtt = MQTTClient(
         THING_NAME,
         ENDPOINT,
@@ -86,8 +89,11 @@ def connect_iot_core() -> MQTTClient:
         ssl=True,
         ssl_params=SSL_CONFIG,
     )
+    print("IOT?")
     try:
+        print("yea")
         mqtt.connect()
+        print("here?")
         mqtt.set_callback(message_callback)
         print(f"Established connection to MQTT broker at {ENDPOINT}.")
     except Exception as e:
@@ -243,7 +249,7 @@ def publish(mqtt_client: MQTTClient, topic: str, value: int) -> None:
 
 
 if __name__ == "__main__":
-    connect_wifi()
+    # connect_wifi()
     mqtt_client = connect_iot_core()
 
     try:
@@ -279,9 +285,11 @@ if __name__ == "__main__":
         # Control the interval of publishing data.
         time.sleep(TIME_INTERVAL)
         
-        # if (time.time() - starting_time) > (7 * 24 * 60 * 60):
-        if (time.time() - starting_time) > (3 * 60):
-            ugit.update()
+        # # if (time.time() - starting_time) > (7 * 24 * 60 * 60):
+        if (time.time() - starting_time) > (10):
+            # ugit.update()
+            print("Performing reset.")
+            machine.reset()
 
 # Firmware Notes:
 """
