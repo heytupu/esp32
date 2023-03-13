@@ -16,8 +16,7 @@ SSID = CFG["Network"]["SSID"]
 PASS = CFG["Network"]["PASS"]
 
 DEVICE_ID = int.from_bytes(machine.unique_id(), "little")
-
-THING_NAME = f"{CFG["AWS_IOT_core"]["THING_NAME"]}_{str(DEVICE_ID)}"
+THING_NAME = CFG["AWS_IOT_core"]["THING_NAME"] # + "_" + DEVICE_ID
 TOPIC = CFG["AWS_IOT_core"]["TOPIC"] + "/testing/specfic/device"
 ENDPOINT = CFG["AWS_IOT_core"]["ENDPOINT"]
 
@@ -103,7 +102,15 @@ def AM2302_sensor_data():
     d = dht.DHT22(machine.Pin(AM2302_PIN))
     data = {}
 
-    d.measure()
+    #d.measure()
+    retry = 0
+    while retry < 3:
+        try:
+            d.measure()
+            break
+        except:
+            retry = retry + 1
+            print(".", end = "")
     temperature = d.temperature()
     humidity = d.humidity()
 
