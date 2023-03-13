@@ -2,32 +2,24 @@
 import os
 import urequests
 import json
-import hashlib
-import binascii
 import machine
 import time
 import network
 
 try:
     if __debug__:
-        logger = None 
+        logger = None
     else:
         import logging
+
         logger = logging.getLogger(__name__)
 except ImportError:
     logger = None
-  
-global internal_tree
 
-# try:
-#     with open("configs/config.json", "r") as json_file:
-#         CFG = load(json_file)
-# except Exception as e:
-#     print("Failed to load config file.")
+global internal_tree
 
 with open("configs/config.json", "r") as json_file:
     CFG = json.load(json_file)
-
 
 # Repository must be public if no personal access token is supplied
 GITHUB_USER = CFG["Github"]["user"]
@@ -54,10 +46,10 @@ GIT_RAW = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/main/"
 
 def pull(fpath, raw_url: str) -> None:
     """Pulls a single file."""
-    headers = {'User-Agent': 'ugit-heytupu'} 
-    # if len(REPO_ACCESS_TOKEN) > 0:
-        # headers["authorization"] = "bearer %s" % REPO_ACCESS_TOKEN
-    
+    headers = {"User-Agent": "ugit-heytupu"}
+    if len(REPO_ACCESS_TOKEN) > 0:
+        headers["authorization"] = "bearer %s" % REPO_ACCESS_TOKEN
+
     if logger and logger.isEnabledFor(logging.DEBUG):
         logger.debug(f"Pulling {fpath} to device.")
 
@@ -78,23 +70,19 @@ def pull(fpath, raw_url: str) -> None:
 def update() -> None:
     """Pulls all the files & overwrites updated files."""
     print("Updating Device.")
-    tree = parse_git_tree() 
+    tree = parse_git_tree()
     for i in tree:
         fpath = remove_prefix(i["path"])
         gpath = GIT_RAW + i["path"]
+        # Pulling the individual file to update.
         pull(fpath, gpath)
-
-    # Restart the machine after the update
-    # machine.reset()
 
 
 def pull_git_tree() -> dict:
     """Pulls the git tree of the repo."""
-    headers = {'User-Agent': 'ugit-heytupu'}
+    headers = {"User-Agent": "ugit-heytupu"}
     r = urequests.get(GIT_TREE_URL, headers=headers)
-    print(r)
     j = json.loads(r.content.decode("utf-8"))
-    print(j)
     r.close()
     return j
 

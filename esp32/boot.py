@@ -2,7 +2,8 @@
 from json import load
 import machine
 import network
-# import ugit 
+
+# import ugit
 
 print("\n-------------------- Started Bootloader ESP32 --------------------\n")
 
@@ -13,7 +14,9 @@ except Exception as e:
     print("Failed to load config file.")
 
 import ugit
+
 print(dir(ugit))
+
 
 def enable_garbage_collection() -> None:
     """Enabling the garbage collector."""

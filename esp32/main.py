@@ -6,16 +6,19 @@ import network
 import ntptime
 import time
 from umqtt.simple import MQTTClient
-import onewire, ds18x20 
+import onewire, ds18x20
 
 from scd30 import SCD30
 from boot import CFG
+
 # import ugit
 
 # Global settings from config file.
 SSID = CFG["Network"]["SSID"]
 PASS = CFG["Network"]["PASS"]
-THING_NAME = CFG["AWS_IOT_core"]["THING_NAME"]
+
+DEVICE_ID = int.from_bytes(machine.unique_id(), "little")
+THING_NAME = CFG["AWS_IOT_core"]["THING_NAME"] + "_" + DEVICE_ID
 TOPIC = CFG["AWS_IOT_core"]["TOPIC"] + "/testing/specfic/device"
 ENDPOINT = CFG["AWS_IOT_core"]["ENDPOINT"]
 
@@ -25,7 +28,6 @@ PRIVATE_KEY = open(CFG["AWS_IOT_core"]["PRIVATE_KEY"], "r").read()
 SSL_CONFIG = {"key": PRIVATE_KEY, "cert": CERTIFICATE, "server_side": False}
 
 TIME_INTERVAL = CFG["Device_settings"]["Time_Interval"]
-DEVICE_ID = int.from_bytes(machine.unique_id(), "little")
 DEVICE_LOCATION = CFG["Device_settings"]["location"]
 UTC_OFFSET = CFG["Device_settings"]["UTC_Offset"]
 
@@ -35,9 +37,9 @@ MOISTURE_BOOLEAN = CFG["Sensors"]["Moisture_Sensor"]["Boolean"]
 DS18B20_BOOLEAN = CFG["Sensors"]["DS18B20"]["Boolean"]
 AM2302_BOOLEAN = CFG["Sensors"]["AM2302"]["Boolean"]
 
-# Sets which pins the sensors use. Each sensor uses a different number of pins.  
+# Sets which pins the sensors use. Each sensor uses a different number of pins.
 SCD30_PIN = CFG["Sensors"]["SCD30"]["Pin"]
-#MOISTURE_PIN = CFG["Sensors"]["Moisture_Sensor"]["Pin"]
+# MOISTURE_PIN = CFG["Sensors"]["Moisture_Sensor"]["Pin"]
 DS18B20_PIN = CFG["Sensors"]["DS18B20"]["Pin"]
 AM2302_PIN = CFG["Sensors"]["AM2302"]["Pin"]
 # This is used to give names to each sensor when we publish the data.
@@ -101,21 +103,20 @@ def connect_iot_core() -> MQTTClient:
 
     return mqtt
 
+
 def AM2302_sensor_data():
     """Connect to AM2302 sensor and return temperature and humidity."""
     d = dht.DHT22(machine.Pin(AM2302_PIN))
     data = {}
-    
+
     d.measure()
     temperature = d.temperature()
     humidity = d.humidity()
-    
-    data = {
-            "temperature" : temperature,
-            "humidity" : humidity
-            }
-    
+
+    data = {"temperature": temperature, "humidity": humidity}
+
     return data
+
 
 def data_from_SCD30():
     """Connect to SCD30 and return temperature, humidity, and co2."""
@@ -214,18 +215,19 @@ def moisture_sensor_data():
 
     return data
 
+
 def DS18B20_sensor_data():
     """This method was built to measure the temperatures of the water
     coming into the farm from the roof."""
     print(DS18B20_PIN)
     data = {}
     for pin in range(0, len(DS18B20_PIN)):
-        try:   
+        try:
             ds_pin = machine.Pin(DS18B20_PIN[pin])
             ds_sensor = ds18x20.DS18X20(onewire.OneWire(ds_pin))
 
             roms = ds_sensor.scan()
-        
+
             ds_sensor.convert_temp()
             time.sleep_ms(750)
             data[DS18B20_NAME[pin]] = ds_sensor.read_temp(roms[0])
@@ -234,10 +236,11 @@ def DS18B20_sensor_data():
                 print(f"{DS18B20_NAME[pin]} failed to respond.")
             except:
                 print("Unknown Pipe Sensor failed.")
-        
-    #print(data)
-    
+
+    # print(data)
+
     return data
+
 
 def publish(mqtt_client: MQTTClient, topic: str, value: int) -> None:
     """Publish the data to the MQTT broker."""
@@ -256,7 +259,7 @@ if __name__ == "__main__":
         ntptime.settime()
     except:
         print("Setting current time failed.")
-    
+
     starting_time = time.time()
     while True:
         data = {
@@ -284,10 +287,9 @@ if __name__ == "__main__":
 
         # Control the interval of publishing data.
         time.sleep(TIME_INTERVAL)
-        
+
         # # if (time.time() - starting_time) > (7 * 24 * 60 * 60):
-        if (time.time() - starting_time) > (10):
-            # ugit.update()
+        if (time.time() - starting_time) > (5 * 60):
             print("Performing reset.")
             machine.reset()
 
