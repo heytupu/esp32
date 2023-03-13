@@ -109,7 +109,15 @@ def AM2302_sensor_data():
     d = dht.DHT22(machine.Pin(AM2302_PIN))
     data = {}
 
-    d.measure()
+    #d.measure()
+    retry = 0
+    while retry < 3:
+        try:
+            d.measure()
+            break
+        except:
+            retry = retry + 1
+            print(".", end = "")
     temperature = d.temperature()
     humidity = d.humidity()
 
