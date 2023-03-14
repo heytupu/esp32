@@ -6,21 +6,21 @@ import machine
 import time
 import network
 
-if __debug__:
-    try:
-        import logging
-    except ImportError:
-        class Logger:
-            DEBUG = 10
-            def isEnabledFor(self, _):
-                return False
-            def debug(self, msg, *args):
-                pass
-            def getLogger(self, name):
-                return Logger()
-        logging = Logger()
+# Initiate the logging object.
+try:
+    import logging
+except ImportError:
+    class Logger:
+        DEBUG = 10
+        def isEnabledFor(self, _):
+            return False
+        def debug(self, msg, *args):
+            pass
+        def getLogger(self, name):
+            return Logger()
+    logging = Logger()
 
-    logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 global internal_tree
 
@@ -50,16 +50,8 @@ GIT_TREE_URL = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}/git/tr
 GIT_RAW = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/main/"
 
 
-def pull(fpath, raw_url: str) -> None:
+def pull(fpath: str, raw_url: str, headers: dict) -> None:
     """Pulls a single file."""
-    headers = {"User-Agent": "ugit-heytupu"}
-    if len(REPO_ACCESS_TOKEN) > 0:
-        headers["authorization"] = "bearer %s" % REPO_ACCESS_TOKEN
-
-    if logger and logger.isEnabledFor(logging.DEBUG):
-        logger.debug(f"Pulling {fpath} to device.")
-
-    print(f"Pulling {fpath} to device.")
     r = urequests.get(raw_url, headers=headers)
     try:
         new_file = open(fpath, "w")
@@ -70,37 +62,56 @@ def pull(fpath, raw_url: str) -> None:
         try:
             new_file.close()
         except:
-            print("Unable to close file during raw file decoding.")
+            logger.error(f"Unable to close {fpath} file during raw file decoding.")
 
 
 def update() -> None:
     """Pulls all the files & overwrites updated files."""
-    print("Updating Device.")
-    tree = parse_git_tree()
+    logger.info("Updating device.")
+
+    # Construct the header used for fetching from github.
+    headers = {"User-Agent": "ugit-heytupu"}
+    if len(REPO_ACCESS_TOKEN) > 0:
+        headers["authorization"] = "bearer %s" % REPO_ACCESS_TOKEN
+    
+    if __debug__:
+        logger.debug(f"Header used for fetching data : {headers}.")
+
+    # Get the git tree
+    tree = parse_git_tree(headers)
     for i in tree:
         fpath = remove_prefix(i["path"])
         gpath = GIT_RAW + i["path"]
+
+        if __debug__:
+            logger.debug(f"Pull {fpath} from {gpath} to device.") 
+     
         # Pulling the individual file to update.
         pull(fpath, gpath)
 
 
-def pull_git_tree() -> dict:
+def pull_git_tree(headers: dict) -> dict:
     """Pulls the git tree of the repo."""
-    headers = {"User-Agent": "ugit-heytupu"}
+    if __debug__:
+        logger.debug(f"Sending request to fetch git tree : {GIT_TREE_URL}.")
     r = urequests.get(GIT_TREE_URL, headers=headers)
     j = json.loads(r.content.decode("utf-8"))
     r.close()
     return j
 
 
-def parse_git_tree() -> list:
+def parse_git_tree(headers: dict) -> list:
     """Parsing the git tree for desired files."""
-    tree = pull_git_tree()
+    tree = pull_git_tree(headers)
 
+    # Construct the file list for updating.
     files = list()
     for i in tree["tree"]:
         if i["path"].startswith(GIT_SUBFOLDER) and not i["path"] in IGNORE_FILES:
             files.append(i)
+    
+    if __debug__:
+        logger.debug(f"Files that should be updated : {files}.")
     return files
 
 

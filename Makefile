@@ -31,7 +31,7 @@ aws-device:
 
 aws-policy:	
 	@echo ""
-	@echo "    Create policy to for thing."
+	@echo "    Create policy for thing."
 	@aws iot create-policy \
 		--policy-name "$(strip $(THING_NAME))_$(strip $(DEVICE_ID))" \
     	--policy-document '{"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": ["iot:Connect"], "Resource": ["arn:aws:iot:eu-central-1:19311246089:client/$(strip $(THING_NAME))_$(strip $(DEVICE_ID))"]}, {"Effect": "Allow", "Action": "iot:Publish", "Resource": "arn:aws:iot:eu-central-1:193112460689:topic/$(TOPIC)"}]}'

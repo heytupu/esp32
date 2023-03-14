@@ -4,14 +4,15 @@
 
 ## Prepare ESP32 for Usage with AWS
 
-The `iot/` directory contains all software regarding IOT. For now, tupu works with the [ESP32](https://www.espressif.com/en/products/socs/esp32) microcontroller which allows for fetching data from a sensor to the cloud. The cloud provider is AWS.
+Tupu works with the [ESP32](https://www.espressif.com/en/products/socs/esp32) microcontroller which handles the communication between the sensor and further peripherals. It essentially fetches data from the sensor and streams it to the cloud. The cloud provider is AWS.
+
 AWS provides a service called AWS Iot Core which basically implements a MQTT broker along with device authentication. The MQTT broker sends the data afterwards to the DynamoDB (noSQL) database.
 
 All the code that will run on the ESP32 is stored in `esp32/`. Each device receives unique certificates 
 from AWS for authentication and a slightly adjusted `config.json` file where parameters for the individual 
 device can be set.
 
-For installing the whole software in one go, please run:
+For installing the whole software in one go, please make sure the **device is plugged** via `/dev/ttyUSB0` and run:
 ```bash
 make esptool && make aws && make ampy
 ```
@@ -32,12 +33,6 @@ sudo ./aws/install
 ```
 
 Please make sure that you have the credentials in place as well the `AWSIoTFullAccess` policy is attached to the your specific user. A guide on how to set the credentials can be found [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
-
-
-```bash 
-# Using AWS Cli to create a Thing(ESP32)
-aws iot register-thing 
-```
 
 - **ESPTOOL**
 

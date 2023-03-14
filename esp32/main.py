@@ -9,7 +9,7 @@ from umqtt.simple import MQTTClient
 import onewire, ds18x20
 
 from scd30 import SCD30
-from boot import CFG
+from boot import CFG, logger
 
 # Global settings from config file.
 SSID = CFG["Network"]["SSID"]
@@ -17,8 +17,7 @@ PASS = CFG["Network"]["PASS"]
 
 DEVICE_ID = int.from_bytes(machine.unique_id(), "little")
 THING_NAME = f"{CFG["AWS_IOT_core"]["THING_NAME"]}_{str(DEVICE_ID)}"
-print(f"Thing : {THING_NAME}")
-TOPIC = CFG["AWS_IOT_core"]["TOPIC"] + "/testing/specfic/device"
+TOPIC = CFG["AWS_IOT_core"]["TOPIC"]
 ENDPOINT = CFG["AWS_IOT_core"]["ENDPOINT"]
 
 ROOT_CA = open(CFG["AWS_IOT_core"]["ROOT_CA"], "r").read()
@@ -45,23 +44,9 @@ AM2302_PIN = CFG["Sensors"]["AM2302"]["Pin"]
 DS18B20_NAME = CFG["Sensors"]["DS18B20"]["Name"]
 
 
-def connect_wifi() -> None:
-    """Establish wifi connection."""
-    sta_if = network.WLAN(network.STA_IF)
-
-    if not sta_if.isconnected():
-        print("Connecting to network ...")
-        sta_if.active(True)
-        sta_if.connect(SSID, PASS)
-        while not sta_if.isconnected():
-            pass
-
-    print("Established connection to network", sta_if.ifconfig())
-
-
 def get_datetime():
-    """Returns a readable date and time. This way, one does not need to
-    solely rely upon the timestamp."""
+    """Returns a readable date and time. 
+    This way, one does not need to solely rely upon the timestamp."""
     # Need to update this so it pulls the time from the internet connection.
     offset = UTC_OFFSET * 60**2
     year, month, day, hour, mins, secs, _, _ = time.localtime(time.time() + offset)
@@ -88,6 +73,9 @@ def connect_iot_core() -> MQTTClient:
         ssl=True,
         ssl_params=SSL_CONFIG,
     )
+    print(f"MQTT Client {mqtt.client_id} connects to {mqtt.server}.")
+    if __debug__:
+        logger.debug(f"MQTT Client {mqtt.client_id} connects to {mqtt.server}.")
     try:
         mqtt.connect()
         mqtt.set_callback(message_callback)
@@ -103,7 +91,6 @@ def AM2302_sensor_data():
     d = dht.DHT22(machine.Pin(AM2302_PIN))
     data = {}
 
-    #d.measure()
     retry = 0
     while retry < 3:
         try:
@@ -111,11 +98,8 @@ def AM2302_sensor_data():
             break
         except:
             retry = retry + 1
-            print(".", end = "")
-    temperature = d.temperature()
-    humidity = d.humidity()
-
-    data = {"temperature": temperature, "humidity": humidity}
+            
+    data = {"temperature": d.temperature(), "humidity": d.humidity()}
 
     return data
 
@@ -253,7 +237,6 @@ def publish(mqtt_client: MQTTClient, topic: str, value: int) -> None:
 
 
 if __name__ == "__main__":
-    # connect_wifi()
     mqtt_client = connect_iot_core()
 
     try:
