@@ -17,6 +17,7 @@ PASS = CFG["Network"]["PASS"]
 
 DEVICE_ID = int.from_bytes(machine.unique_id(), "little")
 THING_NAME = f"{CFG["AWS_IOT_core"]["THING_NAME"]}_{str(DEVICE_ID)}"
+print(f"Thing : {THING_NAME}")
 TOPIC = CFG["AWS_IOT_core"]["TOPIC"] + "/testing/specfic/device"
 ENDPOINT = CFG["AWS_IOT_core"]["ENDPOINT"]
 

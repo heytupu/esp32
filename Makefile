@@ -2,7 +2,7 @@
 # Global Parameters 
 #-----------------------------------------------------------
 THING_NAME := esp32
-POLICY := ESP32
+TOPIC := ESP32/Sensors
 PWD := $(strip $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))) 
 
 esptool:
@@ -13,29 +13,38 @@ esptool:
 
 DEVICE_ID := $(shell ampy --port /dev/ttyUSB0 run get_device_id.py)
 
-aws:
+aws : aws-device aws-policy aws-attach aws-clean 
+
+aws-device:
 	@echo "(2) Register device in AWS Iot Core."
 	@echo "    Creating device certificates for AWS Iot Core."
-	@echo ""
-	aws iot create-keys-and-certificate \
+	@aws iot create-keys-and-certificate \
         --set-as-active \
         --certificate-pem-outfile "$(strip $(PWD))/esp32/cert/certificate.pem.crt" \
         --public-key-outfile "$(strip $(PWD))/esp32/cert/public.pem.key" \
         --private-key-outfile "$(strip $(PWD))/esp32/cert/private.pem.key" \
 		> logfile.json 
-
-	$(eval CERT_ARN := $(shell cat logfile.json | grep -Po '"certificateArn": *\K"[^"]*"' logfile.json))
-
+	
 	@echo ""
-	@echo "Create thing representation for device."
-	aws iot create-thing --thing-name "$(strip $(THING_NAME))_$(strip $(DEVICE_ID))"
-	@echo ""
-	@echo "Attach policy to certificate."
-	aws iot attach-policy --target $(CERT_ARN) --policy-name "$(POLICY)"
-	@echo ""
-	@echo "Attach certificate to thing."
-	aws iot attach-thing-principal --principal $(CERT_ARN) --thing-name "$(strip $(THING_NAME))_$(strip $(DEVICE_ID))"
+	@echo "    Create thing representation for device."
+	@aws iot create-thing --thing-name "$(strip $(THING_NAME))_$(strip $(DEVICE_ID))"
 
+aws-policy:	
+	@echo ""
+	@echo "    Create policy to for thing."
+	@aws iot create-policy \
+		--policy-name "$(strip $(THING_NAME))_$(strip $(DEVICE_ID))" \
+    	--policy-document '{"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": ["iot:Connect"], "Resource": ["arn:aws:iot:eu-central-1:19311246089:client/$(strip $(THING_NAME))_$(strip $(DEVICE_ID))"]}, {"Effect": "Allow", "Action": "iot:Publish", "Resource": "arn:aws:iot:eu-central-1:193112460689:topic/$(TOPIC)"}]}'
+
+aws-attach:
+	@echo ""
+	@echo "    Attach certificate to thing."
+	@aws iot attach-thing-principal --principal $(shell cat logfile.json | grep -Po '"certificateArn": *\K"[^"]*"' logfile.json) --thing-name "$(strip $(THING_NAME))_$(strip $(DEVICE_ID))"
+
+	@echo "    Attach policy to thing."
+	@aws iot attach-policy --target $(shell cat logfile.json | grep -Po '"certificateArn": *\K"[^"]*"' logfile.json) --policy-name "$(strip $(THING_NAME))_$(strip $(DEVICE_ID))"
+
+aws-clean:
     # Delete cache 
 	@rm "$(strip $(PWD))/esp32/cert/public.pem.key" 
 	@rm "$(strip $(PWD))/logfile.json"
