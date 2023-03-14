@@ -73,7 +73,6 @@ def connect_iot_core() -> MQTTClient:
         ssl=True,
         ssl_params=SSL_CONFIG,
     )
-    print(f"MQTT Client {mqtt.client_id} connects to {mqtt.server}.")
     if __debug__:
         logger.debug(f"MQTT Client {mqtt.client_id} connects to {mqtt.server}.")
     try:
@@ -88,6 +87,9 @@ def connect_iot_core() -> MQTTClient:
 
 def AM2302_sensor_data():
     """Connect to AM2302 sensor and return temperature and humidity."""
+    if __debug__:
+        logger.debug(f"AM2302 Pin : {AM2302_PIN}")
+
     d = dht.DHT22(machine.Pin(AM2302_PIN))
     data = {}
 
@@ -127,7 +129,7 @@ def data_from_SCD30():
     except:
         # If sensor is not connected use zeroes.
         missingSCD30 = True
-        (co2, temperature, humidity) = (0, 0, 0)
+        (co2, temperature, humidity) = (0.0, 0.0, 0.0)
 
     # Add in offsets from config file
     co2 = co2 + CFG["SCD30_offsets"]["co2Offset"]
@@ -206,7 +208,9 @@ def moisture_sensor_data():
 def DS18B20_sensor_data():
     """This method was built to measure the temperatures of the water
     coming into the farm from the roof."""
-    print(DS18B20_PIN)
+    if __debug__:
+        logger.debug(f"DS18B20 Pin : {DS18B20_PIN}")
+
     data = {}
     for pin in range(0, len(DS18B20_PIN)):
         try:
@@ -220,10 +224,9 @@ def DS18B20_sensor_data():
             data[DS18B20_NAME[pin]] = ds_sensor.read_temp(roms[0])
         except:
             try:
-                print(f"{DS18B20_NAME[pin]} failed to respond.")
+                logger.error(f"{DS18B20_NAME[pin]} failed to respond.")
             except:
-                print("Unknown Pipe Sensor failed.")
-
+                logger.error("Unknown Pipe Sensor failed.")
     return data
 
 
@@ -242,7 +245,7 @@ if __name__ == "__main__":
     try:
         ntptime.settime()
     except:
-        print("Setting current time failed.")
+        logger.warning("Setting current time failed.")
 
     starting_time = time.time()
     while True:
@@ -272,9 +275,8 @@ if __name__ == "__main__":
         # Control the interval of publishing data.
         time.sleep(TIME_INTERVAL)
 
-        # # if (time.time() - starting_time) > (7 * 24 * 60 * 60):
-        if (time.time() - starting_time) > (5 * 60):
-            print("Performing reset.")
+        if (time.time() - starting_time) > (7 * 24 * 60 * 60):
+            logger.info("Performing reset.")
             machine.reset()
 
 # Firmware Notes:

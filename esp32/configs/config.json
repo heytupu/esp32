@@ -4,12 +4,12 @@
         "PASS" : "",
     },
     "SCD30_offsets" : {
-        "tempOffset": 0,
-        "co2Offset": 0,
-        "humidityOffset": 0
+        "tempOffset": 0.5,
+        "co2Offset": 0.5,
+        "humidityOffset": 0.5
     },
     "AWS_IOT_core" : {
-        "THING_NAME" : "",
+        "THING_NAME" : "esp32",
         "TOPIC" : "",
         "ENDPOINT" : "",
         "ROOT_CA" : "cert/AmazonRootCA1.pem",
@@ -24,7 +24,7 @@
     "Sensors" : {
         "SCD30" : {
             "Pin" : [0, 0],
-            "Boolean" : 0
+            "Boolean" : 1
             },
         "Moisture_Sensor" : {
             "Pin" : [0, 0, 0, 0],
@@ -43,6 +43,6 @@
     "Device_settings" : {
         "Time_Interval" : 60,
         "location": "headquarter",
-        "UTC_Offset" : 0
+        "UTC_Offset" : 1
     }
 }
