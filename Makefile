@@ -34,7 +34,7 @@ aws-policy:
 	@echo "    Create policy for thing."
 	@aws iot create-policy \
 		--policy-name "$(strip $(THING_NAME))_$(strip $(DEVICE_ID))" \
-    	--policy-document '{"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": ["iot:Connect"], "Resource": ["arn:aws:iot:eu-central-1:19311246089:client/$(strip $(THING_NAME))_$(strip $(DEVICE_ID))"]}, {"Effect": "Allow", "Action": "iot:Publish", "Resource": "arn:aws:iot:eu-central-1:193112460689:topic/$(TOPIC)"}]}'
+    	--policy-document '{"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": ["iot:Connect"], "Resource": ["arn:aws:iot:eu-central-1:193112460689:client/$(strip $(THING_NAME))_$(strip $(DEVICE_ID))"]}, {"Effect": "Allow", "Action": "iot:Publish", "Resource": "arn:aws:iot:eu-central-1:193112460689:topic/$(TOPIC)"}]}'
 
 aws-attach:
 	@echo ""
@@ -52,9 +52,23 @@ aws-clean:
 ampy:
 	@echo "(3) Flashing custom software for device $(DEVICE_ID)."
 	@echo ""
-	for file in $(strip $(PWD))/esp32/*; do \
+
+ifeq (certs, $(filter certs,$(MAKECMDGOALS)))
+	@echo 'Flashing device with the specified certificates as certs is set.'
+	@for file in $(strip $(PWD))/esp32/*; do \
+		echo "$${file}"; \
 		ampy --port /dev/ttyUSB0 put $${file}; \
 		done
+else
+	@echo 'Flashing device without certificates.'
+	@for file in $(strip $(PWD))/esp32/*; do \
+		echo "$${file}"; \
+		if [ $${file} != $(strip $(PWD))/esp32/cert ]; then \
+			ampy --port /dev/ttyUSB0 put $${file}; \
+    	fi; \
+	done
+endif
+
 
 help:
 	@echo ''
