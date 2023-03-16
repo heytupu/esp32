@@ -18,9 +18,9 @@ PASS = CFG["Network"]["PASS"]
 DEVICE_ID = int.from_bytes(machine.unique_id(), "little")
 THING_NAME = f"{CFG["AWS_IOT_core"]["THING_NAME"]}_{str(DEVICE_ID)}"
 PUB_TOPIC = CFG["AWS_IOT_core"]["TOPIC"]
-SUB_TOPIC_CONFIG = f'ESP32/{THING_NAME}/update/config'
-SUB_TOPIC_OTA = f'ESP32/{THING_NAME}/update/ota'
-SUB_TOPIC_CERTS = f'ESP32/{THING_NAME}/update/certs'
+SUB_TOPIC_CONFIG = f"ESP32/{THING_NAME}/update/config"
+SUB_TOPIC_OTA = f"ESP32/{THING_NAME}/update/ota"
+SUB_TOPIC_CERTS = f"ESP32/{THING_NAME}/update/certs"
 ENDPOINT = CFG["AWS_IOT_core"]["ENDPOINT"]
 
 ROOT_CA = open(CFG["AWS_IOT_core"]["ROOT_CA"], "r").read()
@@ -48,7 +48,7 @@ DS18B20_NAME = CFG["Sensors"]["DS18B20"]["Name"]
 
 
 def get_datetime():
-    """Returns a readable date and time. 
+    """Returns a readable date and time.
     This way, one does not need to solely rely upon the timestamp."""
     # Need to update this so it pulls the time from the internet connection.
     offset = UTC_OFFSET * 60**2
@@ -103,7 +103,7 @@ def AM2302_sensor_data():
             break
         except:
             retry = retry + 1
-            
+
     data = {"temperature": d.temperature(), "humidity": d.humidity()}
 
     return data
@@ -172,7 +172,7 @@ def moisture_sensor_data():
     moistureValue3 = moisture3.read()
     moistureValue4 = moisture4.read()
 
-    # Normalize moisture measurements to a percentage using the maximum 
+    # Normalize moisture measurements to a percentage using the maximum
     # sensor value, 4095.
     #
     # Immersing the sensor in water registers about 62% so it
@@ -236,7 +236,7 @@ def DS18B20_sensor_data():
 def subscribe(mqtt_client: MQTTClient) -> None:
     """Subscribe to all topics from MQTT broker."""
     try:
-        # Subscribe to update the certificates. 
+        # Subscribe to update the certificates.
         mqtt_client.subscribe(SUB_TOPIC_CERTS)
         # Subscribe to software OTA updates.
         mqtt_client.subscribe(SUB_TOPIC_OTA)

@@ -22,7 +22,7 @@ import logging
 #     logging = Logger()
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level = logging.INFO)
+logging.basicConfig(level=logging.INFO)
 
 logger.info("\n-------------------- Started Bootloader ESP32 --------------------\n")
 

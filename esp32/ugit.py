@@ -10,14 +10,19 @@ import network
 try:
     import logging
 except ImportError:
+
     class Logger:
         DEBUG = 10
+
         def isEnabledFor(self, _):
             return False
+
         def debug(self, msg, *args):
             pass
+
         def getLogger(self, name):
             return Logger()
+
     logging = Logger()
 
 logger = logging.getLogger(__name__)
@@ -73,7 +78,7 @@ def update() -> None:
     headers = {"User-Agent": "ugit-heytupu"}
     if len(REPO_ACCESS_TOKEN) > 0:
         headers["authorization"] = "bearer %s" % REPO_ACCESS_TOKEN
-    
+
     if __debug__:
         logger.debug(f"Header used for fetching data : {headers}.")
 
@@ -84,8 +89,8 @@ def update() -> None:
         gpath = GIT_RAW + i["path"]
 
         if __debug__:
-            logger.debug(f"Pull {fpath} from {gpath} to device.") 
-     
+            logger.debug(f"Pull {fpath} from {gpath} to device.")
+
         # Pulling the individual file to update.
         pull(fpath, gpath)
 
@@ -109,7 +114,7 @@ def parse_git_tree(headers: dict) -> list:
     for i in tree["tree"]:
         if i["path"].startswith(GIT_SUBFOLDER) and not i["path"] in IGNORE_FILES:
             files.append(i)
-    
+
     if __debug__:
         logger.debug(f"Files that should be updated : {files}.")
     return files
