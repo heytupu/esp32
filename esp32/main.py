@@ -17,7 +17,10 @@ PASS = CFG["Network"]["PASS"]
 
 DEVICE_ID = int.from_bytes(machine.unique_id(), "little")
 THING_NAME = f"{CFG["AWS_IOT_core"]["THING_NAME"]}_{str(DEVICE_ID)}"
-TOPIC = CFG["AWS_IOT_core"]["TOPIC"]
+PUB_TOPIC = CFG["AWS_IOT_core"]["TOPIC"]
+SUB_TOPIC_CONFIG = f'ESP32/{THING_NAME}/update/config'
+SUB_TOPIC_OTA = f'ESP32/{THING_NAME}/update/ota'
+SUB_TOPIC_CERTS = f'ESP32/{THING_NAME}/update/certs'
 ENDPOINT = CFG["AWS_IOT_core"]["ENDPOINT"]
 
 ROOT_CA = open(CFG["AWS_IOT_core"]["ROOT_CA"], "r").read()
@@ -230,6 +233,19 @@ def DS18B20_sensor_data():
     return data
 
 
+def subscribe(mqtt_client: MQTTClient) -> None:
+    """Subscribe to all topics from MQTT broker."""
+    try:
+        # Subscribe to update the certificates. 
+        mqtt_client.subscribe(SUB_TOPIC_CERTS)
+        # Subscribe to software OTA updates.
+        mqtt_client.subscribe(SUB_TOPIC_OTA)
+        # Subscribe to update the configuration file.
+        mqtt_client.subscribe(SUB_TOPIC_CONFIG)
+    except Exception as error:
+        logger.warning(f"Failed to subscribe to mqtt broker'. {error}")
+
+
 def publish(mqtt_client: MQTTClient, topic: str, value: int) -> None:
     """Publish the data to the MQTT broker."""
     try:
@@ -241,6 +257,8 @@ def publish(mqtt_client: MQTTClient, topic: str, value: int) -> None:
 
 if __name__ == "__main__":
     mqtt_client = connect_iot_core()
+    # Subscribe to various topics after client is instantiated.
+    subscribe(mqtt_client)
 
     try:
         ntptime.settime()
@@ -270,7 +288,7 @@ if __name__ == "__main__":
             data.update(AM2302_data)
 
         # Push the data to the MQTT broker in AWS Iot Core.
-        publish(mqtt_client, "ESP32/Sensors", json.dumps(data))
+        publish(mqtt_client, PUB_TOPIC, json.dumps(data))
 
         # Control the interval of publishing data.
         time.sleep(TIME_INTERVAL)
