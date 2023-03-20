@@ -17,7 +17,10 @@ For installing the whole software in one go, please make sure the **device is pl
 make esptool && make aws && make ampy
 ```
 
-Please make sure all prerequisits are installed.
+For a device working correctly, a WIFI connection must be in place and some AWS certificates 
+must be attached to the device as well.
+
+Furthermore, please make sure all prerequisits are installed.
 
 ### Prerequisits
 
@@ -47,3 +50,21 @@ MicroPython Tool [ampy](https://github.com/scientifichackers/ampy) - Utility to 
 ```bash
 pip install adafruit-ampy
 ```
+
+## Configurations 
+
+Please find the relevant pins for the specific sensors in the config file `esp32/configs/config.json`.
+For enabling the measurement of a specific sensors enable them in the config. 
+If the sensor is not present, software has to be added.
+
+
+## Sensors 
+
+Find all the sensors that can be used in the table below.
+
+| Type  | Sensor | Pins | Additional |
+| ---------------------------- | -------------- | -------------- | -------------- | 
+| Temperature, Humidity | [AM2302/DHT22](https://cdn-shop.adafruit.com/datasheets/Digital+humidity+and+temperature+sensor+AM2302.pdf) | 25 |
+| Pipe Water Temperature  | [DS18B20](https://www.analog.com/media/en/technical-documentation/data-sheets/ds18b20.pdf) | | |
+| Temperature, Humidity, CO2 | [SCD30](https://wiki.seeedstudio.com/Grove-C02_Temperature_Humidity_Sensor-SCD30/) | 22, 21 | | 
+| Capacitive Soil Moisture | | 34, 33, 32, 31 | |

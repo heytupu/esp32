@@ -63,7 +63,14 @@ def get_datetime():
 
 def message_callback(topic: str, message: str) -> None:
     """Callback for MQTT client."""
-    print(json.loads(message))
+    logger.info(f"Received: {message} from {topic}.")
+
+    if topic == SUB_TOPIC_OTA:
+        print(message.payload)
+        if message.payload["update"]:
+            logger.info("Performing a machine reset.")
+
+            machine.reset()
 
 
 def connect_iot_core() -> MQTTClient:
@@ -88,32 +95,31 @@ def connect_iot_core() -> MQTTClient:
     return mqtt
 
 
-def AM2302_sensor_data():
+def data_from_AM2302():
     """Connect to AM2302 sensor and return temperature and humidity."""
     if __debug__:
         logger.debug(f"AM2302 Pin : {AM2302_PIN}")
-
+    
     d = dht.DHT22(machine.Pin(AM2302_PIN))
-    data = {}
 
     retry = 0
-    while retry < 3:
+    while retry < 5:
         try:
             d.measure()
             break
         except:
             retry = retry + 1
 
-    data = {"temperature": d.temperature(), "humidity": d.humidity()}
-
-    return data
+    logger.info(
+        f"\nValues captured: Temperature: {d.temperature()} | Humidity: {d.humidity()}"
+    )
+    return {"temperature": d.temperature(), "humidity": d.humidity()}
 
 
 def data_from_SCD30():
     """Connect to SCD30 and return temperature, humidity, and co2."""
     # Set up i2c protocol for the SCD30
     i2c = machine.SoftI2C(scl=machine.Pin(22), sda=machine.Pin(21), freq=10000)
-
     try:
         # If SCD30 has not been connected attempt to connect to it.
         scd30 = SCD30(i2c, 0x61)
@@ -139,14 +145,8 @@ def data_from_SCD30():
     temperature = temperature + CFG["SCD30_offsets"]["tempOffset"]
     humidity = humidity + CFG["SCD30_offsets"]["humidityOffset"]
 
-    print(
-        "\nValues captured:",
-        "CO2:",
-        co2,
-        "Temperature:",
-        temperature,
-        "Humidity:",
-        humidity,
+    logger.info(
+        f"\nValues captured: CO2: {co2} | Temperature: {temperature} | Humidity: {humidity}"
     )
 
     return {"temperature": temperature, "co2": co2, "humidity": humidity}
@@ -179,19 +179,15 @@ def moisture_sensor_data():
     # makes sense to set that as the 100% moisture point
     moistureValue1 = 4095 - moistureValue1
     moistureValue1 = moistureValue1 * (100 / 4095) * (100 / 63)
-    print("Moisture1:", moistureValue1)
 
     moistureValue2 = 4095 - moistureValue2
     moistureValue2 = moistureValue2 * (100 / 4095) * (100 / 63)
-    print("Moisture2:", moistureValue2)
 
     moistureValue3 = 4095 - moistureValue3
     moistureValue3 = moistureValue3 * (100 / 4095) * (100 / 63)
-    print("Moisture3:", moistureValue3)
 
     moistureValue4 = 4095 - moistureValue4
     moistureValue4 = moistureValue4 * (100 / 4095) * (100 / 63)
-    print("Moisture4:", moistureValue4)
 
     data = {}
 
@@ -205,10 +201,13 @@ def moisture_sensor_data():
     if moistureValue4 > 1:
         data["moisture_4"] = moistureValue4
 
+    logger.info(
+        f"\nValues captured: Moisture 1: {moistureValue1} | Moisture 2: {moistureValue2} | Moisture 3: {moistureValue3} | Moisture 4: {moistureValue4}"
+    ) 
     return data
 
 
-def DS18B20_sensor_data():
+def data_from_DS18B20():
     """This method was built to measure the temperatures of the water
     coming into the farm from the roof."""
     if __debug__:
@@ -281,21 +280,17 @@ if __name__ == "__main__":
             moisture_data = moisture_sensor_data()
             data.update(moisture_data)
         if DS18B20_BOOLEAN:
-            DS18B20_data = DS18B20_sensor_data()
-            data.update(DS18B20_data)
+            ds18B20_data = data_from_DS18B20()
+            data.update(ds18B20_data)
         if AM2302_BOOLEAN:
-            AM2302_data = AM2302_sensor_data()
-            data.update(AM2302_data)
+            am2302_data = data_from_AM2302()
+            data.update(am2302_data)
 
         # Push the data to the MQTT broker in AWS Iot Core.
         publish(mqtt_client, PUB_TOPIC, json.dumps(data))
 
         # Control the interval of publishing data.
         time.sleep(TIME_INTERVAL)
-
-        if (time.time() - starting_time) > (7 * 24 * 60 * 60):
-            logger.info("Performing reset.")
-            machine.reset()
 
 # Firmware Notes:
 """

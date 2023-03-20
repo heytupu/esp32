@@ -5,22 +5,6 @@ import network
 import ugit
 import logging
 
-# try:
-#     import logging
-# except ImportError:
-#     print("Import error for logging?")
-#     class Logger:
-#         DEBUG = 10
-#         def isEnabledFor(self, _):
-#             return False
-#         def debug(self, msg, *args):
-#             pass
-#         def info(self, msg, *args):
-#             pass
-#         def getLogger(self, name):
-#             return Logger()
-#     logging = Logger()
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
@@ -58,4 +42,4 @@ def connect_wifi() -> None:
 enable_garbage_collection()
 connect_wifi()
 # Updating the Device via Github.
-# ugit.update()
+ugit.update()
