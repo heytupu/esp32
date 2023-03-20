@@ -92,7 +92,7 @@ def update() -> None:
             logger.debug(f"Pull {fpath} from {gpath} to device.")
 
         # Pulling the individual file to update.
-        pull(fpath, gpath)
+        pull(fpath, gpath, headers)
 
 
 def pull_git_tree(headers: dict) -> dict:

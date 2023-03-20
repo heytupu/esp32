@@ -85,10 +85,11 @@ def connect_iot_core() -> MQTTClient:
     )
     if __debug__:
         logger.debug(f"MQTT Client {mqtt.client_id} connects to {mqtt.server}.")
+
+    mqtt.set_callback(message_callback)
     try:
         mqtt.connect()
-        mqtt.set_callback(message_callback)
-        print(f"Established connection to MQTT broker at {ENDPOINT}.")
+        logger.info(f"Established connection to MQTT broker at {ENDPOINT}.")
     except Exception as e:
         raise Exception(f"Unable to connect to MQTT broker. {e}")
 
@@ -99,7 +100,7 @@ def data_from_AM2302():
     """Connect to AM2302 sensor and return temperature and humidity."""
     if __debug__:
         logger.debug(f"AM2302 Pin : {AM2302_PIN}")
-    
+
     d = dht.DHT22(machine.Pin(AM2302_PIN))
 
     retry = 0
@@ -111,7 +112,7 @@ def data_from_AM2302():
             retry = retry + 1
 
     logger.info(
-        f"\nValues captured: Temperature: {d.temperature()} | Humidity: {d.humidity()}"
+        f"AM2302: Temperature: {d.temperature()} | Humidity: {d.humidity()}"
     )
     return {"temperature": d.temperature(), "humidity": d.humidity()}
 
@@ -124,7 +125,7 @@ def data_from_SCD30():
         # If SCD30 has not been connected attempt to connect to it.
         scd30 = SCD30(i2c, 0x61)
     except:
-        print("Failed to connect to SCD30. Please make sure the sensor is connected.")
+        logger.warning("Failed to connect to SCD30. Please make sure the sensor is connected.")
 
     missingSCD30 = False
     # Try to take measurement from scd30
@@ -146,7 +147,7 @@ def data_from_SCD30():
     humidity = humidity + CFG["SCD30_offsets"]["humidityOffset"]
 
     logger.info(
-        f"\nValues captured: CO2: {co2} | Temperature: {temperature} | Humidity: {humidity}"
+        f"SCD30: CO2: {co2} | Temperature: {temperature} | Humidity: {humidity}"
     )
 
     return {"temperature": temperature, "co2": co2, "humidity": humidity}
@@ -190,7 +191,6 @@ def moisture_sensor_data():
     moistureValue4 = moistureValue4 * (100 / 4095) * (100 / 63)
 
     data = {}
-
     # Add moisture measurements if they are not blank (Wired to 3.3Vcc).
     if moistureValue1 > 1:
         data["moisture_1"] = moistureValue1
@@ -202,8 +202,12 @@ def moisture_sensor_data():
         data["moisture_4"] = moistureValue4
 
     logger.info(
-        f"\nValues captured: Moisture 1: {moistureValue1} | Moisture 2: {moistureValue2} | Moisture 3: {moistureValue3} | Moisture 4: {moistureValue4}"
-    ) 
+        f"\nValues captured: \
+                Moisture 1: {moistureValue1} | \
+                Moisture 2: {moistureValue2} | \
+                Moisture 3: {moistureValue3} | \
+                Moisture 4: {moistureValue4}"
+    )
     return data
 
 
@@ -235,28 +239,32 @@ def data_from_DS18B20():
 def subscribe(mqtt_client: MQTTClient) -> None:
     """Subscribe to all topics from MQTT broker."""
     try:
-        # Subscribe to update the certificates.
-        mqtt_client.subscribe(SUB_TOPIC_CERTS)
-        # Subscribe to software OTA updates.
-        mqtt_client.subscribe(SUB_TOPIC_OTA)
-        # Subscribe to update the configuration file.
-        mqtt_client.subscribe(SUB_TOPIC_CONFIG)
-    except Exception as error:
-        logger.warning(f"Failed to subscribe to mqtt broker'. {error}")
-
+        mqtt_client.subscribe(str.encode(SUB_TOPIC_OTA))
+        logger.info(f"Subscribed to topic {SUB_TOPIC_OTA}.")
+    except Exception as e:
+        logger.warning(f"Failed to subscribe to {SUB_TOPIC_OTA}. {e}")
+    # try:
+    #     mqtt_client.subscribe(str.encode(SUB_TOPIC_CERTS))
+    # except Exception as e:
+    #     logger.warning(f"Failed to subscribe to {SUB_TOPIC_CERTS}. {e}")
+    # try:
+    #     mqtt_client.subscribe(str.encode(SUB_TOPIC_CONFIG))
+    # except Exception as e:
+    #     logger.warning(f"Failed to subscribe to {SUB_TOPIC_CONFIG}. {e}")
+    
 
 def publish(mqtt_client: MQTTClient, topic: str, value: int) -> None:
     """Publish the data to the MQTT broker."""
     try:
         mqtt_client.publish(topic, value)
-        print(f"Published value {value} to topic '{topic}'.")
+        logger.info(f"Published value {value} to topic '{topic}'.")
     except Exception as error:
-        print(f"Failed to publish sensor data for topic '{topic}'. {error}")
+        logger.warning(f"Failed to publish sensor data for topic '{topic}'. {error}")
 
 
 if __name__ == "__main__":
     mqtt_client = connect_iot_core()
-    # Subscribe to various topics after client is instantiated.
+    # Subscribe to various topics after client is instantiated. 
     subscribe(mqtt_client)
 
     try:
@@ -288,9 +296,11 @@ if __name__ == "__main__":
 
         # Push the data to the MQTT broker in AWS Iot Core.
         publish(mqtt_client, PUB_TOPIC, json.dumps(data))
-
+        # Check for newly arrived messages via subscription topics
+        mqtt_client.check_msg()
         # Control the interval of publishing data.
         time.sleep(TIME_INTERVAL)
+
 
 # Firmware Notes:
 """

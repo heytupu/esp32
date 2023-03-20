@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-logger.info("\n-------------------- Started Bootloader ESP32 --------------------\n")
+logger.info("\n\n-------------------- Started Bootloader ESP32 --------------------\n")
 
 try:
     with open("configs/config.json", "r") as json_file:
@@ -38,8 +38,9 @@ def connect_wifi() -> None:
 
     logger.info(f"Established connection to network : {sta_if.ifconfig()}.")
 
-
+# Pull out the sluggish.
 enable_garbage_collection()
+# Establish WIFI connection.
 connect_wifi()
 # Updating the Device via Github.
-ugit.update()
+# ugit.update()
