@@ -38,9 +38,10 @@ def connect_wifi() -> None:
 
     logger.info(f"Established connection to network : {sta_if.ifconfig()}.")
 
+
 # Pull out the sluggish.
 enable_garbage_collection()
 # Establish WIFI connection.
 connect_wifi()
 # Updating the Device via Github.
-# ugit.update()
+ugit.update()

@@ -61,16 +61,20 @@ def get_datetime():
     return datetime
 
 
-def message_callback(topic: str, message: str) -> None:
+def message_callback(b_topic: str, b_msg: str) -> None:
     """Callback for MQTT client."""
-    logger.info(f"Received: {message} from {topic}.")
+    # Decoding the subscription message.
+    msg = json.loads(b_msg)
+    topic = b_topic.decode("utf-8")
+
+    logger.info(f"Received {msg} from mqtt broker via topic {topic}.")
 
     if topic == SUB_TOPIC_OTA:
-        print(message.payload)
-        if message.payload["update"]:
-            logger.info("Performing a machine reset.")
-
-            machine.reset()
+        if "update" in msg:
+            if msg["update"]:
+                logger.info("Performing a machine reset.")
+                # Perform a machine reset in order to trigger the ugit logic.
+                machine.reset()
 
 
 def connect_iot_core() -> MQTTClient:
@@ -93,6 +97,9 @@ def connect_iot_core() -> MQTTClient:
     except Exception as e:
         raise Exception(f"Unable to connect to MQTT broker. {e}")
 
+    # Subscribe to defined topics in order to be able to access the device.
+    subscribe(mqtt)
+
     return mqtt
 
 
@@ -111,9 +118,7 @@ def data_from_AM2302():
         except:
             retry = retry + 1
 
-    logger.info(
-        f"AM2302: Temperature: {d.temperature()} | Humidity: {d.humidity()}"
-    )
+    logger.info(f"AM2302: Temperature: {d.temperature()} | Humidity: {d.humidity()}")
     return {"temperature": d.temperature(), "humidity": d.humidity()}
 
 
@@ -125,7 +130,9 @@ def data_from_SCD30():
         # If SCD30 has not been connected attempt to connect to it.
         scd30 = SCD30(i2c, 0x61)
     except:
-        logger.warning("Failed to connect to SCD30. Please make sure the sensor is connected.")
+        logger.warning(
+            "Failed to connect to SCD30. Please make sure the sensor is connected."
+        )
 
     missingSCD30 = False
     # Try to take measurement from scd30
@@ -239,33 +246,33 @@ def data_from_DS18B20():
 def subscribe(mqtt_client: MQTTClient) -> None:
     """Subscribe to all topics from MQTT broker."""
     try:
-        mqtt_client.subscribe(str.encode(SUB_TOPIC_OTA))
-        logger.info(f"Subscribed to topic {SUB_TOPIC_OTA}.")
+        # mqtt_client.subscribe(str.encode(SUB_TOPIC_OTA))
+        mqtt_client.subscribe(SUB_TOPIC_OTA)
+        logger.info(f"Subscribed to topic {SUB_TOPIC_OTA}")
     except Exception as e:
         logger.warning(f"Failed to subscribe to {SUB_TOPIC_OTA}. {e}")
     # try:
-    #     mqtt_client.subscribe(str.encode(SUB_TOPIC_CERTS))
+    #     mqtt_client.subscribe(SUB_TOPIC_CERTS)
+    #     logger.info(f"Subscribed to topic {SUB_TOPIC_CERTS}")
     # except Exception as e:
     #     logger.warning(f"Failed to subscribe to {SUB_TOPIC_CERTS}. {e}")
     # try:
     #     mqtt_client.subscribe(str.encode(SUB_TOPIC_CONFIG))
     # except Exception as e:
     #     logger.warning(f"Failed to subscribe to {SUB_TOPIC_CONFIG}. {e}")
-    
+
 
 def publish(mqtt_client: MQTTClient, topic: str, value: int) -> None:
     """Publish the data to the MQTT broker."""
     try:
         mqtt_client.publish(topic, value)
-        logger.info(f"Published value {value} to topic '{topic}'.")
+        logger.info(f"Published value {value} to topic '{topic}'")
     except Exception as error:
         logger.warning(f"Failed to publish sensor data for topic '{topic}'. {error}")
 
 
 if __name__ == "__main__":
     mqtt_client = connect_iot_core()
-    # Subscribe to various topics after client is instantiated. 
-    subscribe(mqtt_client)
 
     try:
         ntptime.settime()
@@ -274,6 +281,7 @@ if __name__ == "__main__":
 
     starting_time = time.time()
     while True:
+
         data = {
             "datetime": get_datetime(),
             "device_id": DEVICE_ID,
@@ -294,10 +302,10 @@ if __name__ == "__main__":
             am2302_data = data_from_AM2302()
             data.update(am2302_data)
 
-        # Push the data to the MQTT broker in AWS Iot Core.
-        publish(mqtt_client, PUB_TOPIC, json.dumps(data))
         # Check for newly arrived messages via subscription topics
         mqtt_client.check_msg()
+        # Push the data to the MQTT broker in AWS Iot Core.
+        publish(mqtt_client, PUB_TOPIC, json.dumps(data))
         # Control the interval of publishing data.
         time.sleep(TIME_INTERVAL)
 
