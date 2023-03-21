@@ -5,26 +5,11 @@ import json
 import machine
 import time
 import network
+import logging
 
 # Initiate the logging object.
-try:
-    import logging
-except ImportError:
-    class Logger:
-        DEBUG = 10
-
-        def isEnabledFor(self, _):
-            return False
-
-        def debug(self, msg, *args):
-            pass
-
-        def getLogger(self, name):
-            return Logger()
-
-    logging = Logger()
-
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 global internal_tree
 
@@ -62,6 +47,8 @@ def pull(fpath: str, raw_url: str, headers: dict) -> None:
         new_file.write(r.content.decode("utf-8"))
         r.close()
         new_file.close()
+        
+        logger.info(f"Updated {fpath} on device.")
     except:
         try:
             new_file.close()

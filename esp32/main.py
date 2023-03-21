@@ -22,7 +22,7 @@ THING_NAME = f"{CFG["AWS_IOT_core"]["THING_NAME"]}_{str(DEVICE_ID)}"
 # Publishing Topics
 PUB_TOPIC = CFG["AWS_IOT_core"]["TOPIC"]
 # Subscription Topics
-SUB_TOPICS = ["ESP32/all/update/ota", f"ESP32/{THING_NAME}/update/config"] 
+SUB_TOPICS = ["ESP32/all/update/ota", f"ESP32/{THING_NAME}/update/ota"] 
 SUB_TOPIC = "ESP32/all/update/ota"
 SUB_TOPIC_CONFIG = f"ESP32/{THING_NAME}/update/config"
 SUB_TOPIC_OTA = f"ESP32/{THING_NAME}/update/ota"
