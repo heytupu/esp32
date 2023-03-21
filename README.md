@@ -68,3 +68,28 @@ Find all the sensors that can be used in the table below.
 | Pipe Water Temperature  | [DS18B20](https://www.analog.com/media/en/technical-documentation/data-sheets/ds18b20.pdf) | | |
 | Temperature, Humidity, CO2 | [SCD30](https://wiki.seeedstudio.com/Grove-C02_Temperature_Humidity_Sensor-SCD30/) | 22, 21 | | 
 | Capacitive Soil Moisture | | 34, 33, 32, 31 | |
+
+
+## Remote Control & Updating
+The devices once connected to the AWS Iot Core can be controlled and updated via publishing a message 
+to the mqtt broker. 
+
+#### OTA 
+To run a **machine.reset()** publish a message to one of the two device topics:
+
+- `/ESP32/esp_${DEVICE_ID}/update/ota`
+- `/ESP32/all/update/ota`
+
+with the message payload of
+```
+{"update": 1}
+```
+
+The first one only updates a specific device while the latter updates all devices.
+
+
+## Additional Information
+
+#### Firmware Notes
+
+- Do **not** use **pin 12**. There is an error that can occur when using this particular pin. 

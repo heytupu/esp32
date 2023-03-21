@@ -12,38 +12,47 @@ from scd30 import SCD30
 from boot import CFG, logger
 
 # Global settings from config file.
+#
+# WIFI Settings.
 SSID = CFG["Network"]["SSID"]
 PASS = CFG["Network"]["PASS"]
-
+# Device Settings
 DEVICE_ID = int.from_bytes(machine.unique_id(), "little")
 THING_NAME = f"{CFG["AWS_IOT_core"]["THING_NAME"]}_{str(DEVICE_ID)}"
+# Publishing Topics
 PUB_TOPIC = CFG["AWS_IOT_core"]["TOPIC"]
+# Subscription Topics
+SUB_TOPICS = ["ESP32/all/update/ota", f"ESP32/{THING_NAME}/update/config"] 
+SUB_TOPIC = "ESP32/all/update/ota"
 SUB_TOPIC_CONFIG = f"ESP32/{THING_NAME}/update/config"
 SUB_TOPIC_OTA = f"ESP32/{THING_NAME}/update/ota"
 SUB_TOPIC_CERTS = f"ESP32/{THING_NAME}/update/certs"
+# AWS Server Endpoint.
 ENDPOINT = CFG["AWS_IOT_core"]["ENDPOINT"]
-
+# AWS Certificates.
 ROOT_CA = open(CFG["AWS_IOT_core"]["ROOT_CA"], "r").read()
 CERTIFICATE = open(CFG["AWS_IOT_core"]["CERTIFICATE"], "r").read()
 PRIVATE_KEY = open(CFG["AWS_IOT_core"]["PRIVATE_KEY"], "r").read()
 SSL_CONFIG = {"key": PRIVATE_KEY, "cert": CERTIFICATE, "server_side": False}
 
+# General Settings
 TIME_INTERVAL = CFG["Device_settings"]["Time_Interval"]
 DEVICE_LOCATION = CFG["Device_settings"]["location"]
 UTC_OFFSET = CFG["Device_settings"]["UTC_Offset"]
 
-# Sensor Bool for setting wether specific sensor is used or not.
+# Sensor flags for whether a specific sensor is used.
 SCD30_BOOLEAN = CFG["Sensors"]["SCD30"]["Boolean"]
 MOISTURE_BOOLEAN = CFG["Sensors"]["Moisture_Sensor"]["Boolean"]
 DS18B20_BOOLEAN = CFG["Sensors"]["DS18B20"]["Boolean"]
 AM2302_BOOLEAN = CFG["Sensors"]["AM2302"]["Boolean"]
 
-# Sets which pins the sensors use. Each sensor uses a different number of pins.
+# Sets which pins are used by the sensors. Each sensor uses a different number of pins.
 SCD30_PIN = CFG["Sensors"]["SCD30"]["Pin"]
 # MOISTURE_PIN = CFG["Sensors"]["Moisture_Sensor"]["Pin"]
 DS18B20_PIN = CFG["Sensors"]["DS18B20"]["Pin"]
 AM2302_PIN = CFG["Sensors"]["AM2302"]["Pin"]
-# This is used to give names to each sensor when we publish the data.
+
+# Defines the Sensor names. 
 DS18B20_NAME = CFG["Sensors"]["DS18B20"]["Name"]
 
 
@@ -69,10 +78,10 @@ def message_callback(b_topic: str, b_msg: str) -> None:
 
     logger.info(f"Received {msg} from mqtt broker via topic {topic}.")
 
-    if topic == SUB_TOPIC_OTA:
+    if topic == SUB_TOPICS[0] or topic == SUB_TOPICS[1]:
         if "update" in msg:
             if msg["update"]:
-                logger.info("Performing a machine reset.")
+                logger.info("\nPerforming a machine reset.\n")
                 # Perform a machine reset in order to trigger the ugit logic.
                 machine.reset()
 
@@ -245,21 +254,13 @@ def data_from_DS18B20():
 
 def subscribe(mqtt_client: MQTTClient) -> None:
     """Subscribe to all topics from MQTT broker."""
-    try:
-        # mqtt_client.subscribe(str.encode(SUB_TOPIC_OTA))
-        mqtt_client.subscribe(SUB_TOPIC_OTA)
-        logger.info(f"Subscribed to topic {SUB_TOPIC_OTA}")
-    except Exception as e:
-        logger.warning(f"Failed to subscribe to {SUB_TOPIC_OTA}. {e}")
-    # try:
-    #     mqtt_client.subscribe(SUB_TOPIC_CERTS)
-    #     logger.info(f"Subscribed to topic {SUB_TOPIC_CERTS}")
-    # except Exception as e:
-    #     logger.warning(f"Failed to subscribe to {SUB_TOPIC_CERTS}. {e}")
-    # try:
-    #     mqtt_client.subscribe(str.encode(SUB_TOPIC_CONFIG))
-    # except Exception as e:
-    #     logger.warning(f"Failed to subscribe to {SUB_TOPIC_CONFIG}. {e}")
+    for topic in SUB_TOPICS:
+        print(topic)
+        try:
+            mqtt_client.subscribe(topic)
+            logger.info(f"Subscribed to topic {topic}")
+        except Exception as e:
+            logger.warning(f"Failed to subscribe to {topic}. {e}")
 
 
 def publish(mqtt_client: MQTTClient, topic: str, value: int) -> None:
@@ -273,21 +274,21 @@ def publish(mqtt_client: MQTTClient, topic: str, value: int) -> None:
 
 if __name__ == "__main__":
     mqtt_client = connect_iot_core()
-
+    
+    # Sets the correct time otherwise the default of UNIX starting time is used as reference.
     try:
         ntptime.settime()
     except:
         logger.warning("Setting current time failed.")
-
+    
+    # Set a time counter.
     starting_time = time.time()
     while True:
-
         data = {
             "datetime": get_datetime(),
             "device_id": DEVICE_ID,
             "location": DEVICE_LOCATION,
         }
-
         # Gather data from the sensor specified.
         if SCD30_BOOLEAN:
             scd30_data = data_from_SCD30()
@@ -308,11 +309,3 @@ if __name__ == "__main__":
         publish(mqtt_client, PUB_TOPIC, json.dumps(data))
         # Control the interval of publishing data.
         time.sleep(TIME_INTERVAL)
-
-
-# Firmware Notes:
-"""
-1. Do not use pin 12 for anything. There is an error thta can occur when using
-this pin. It makes it impossible to start the program. You can't even cancel it
-with Ctrl. "C". 
-"""

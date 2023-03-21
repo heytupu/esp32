@@ -10,7 +10,6 @@ import network
 try:
     import logging
 except ImportError:
-
     class Logger:
         DEBUG = 10
 
@@ -125,3 +124,4 @@ def remove_prefix(fpath: str) -> str:
     if fpath.startswith(GIT_SUBFOLDER):
         return fpath[len(GIT_SUBFOLDER) :]
     return fpath
+
