@@ -47,7 +47,7 @@ def pull(fpath: str, raw_url: str, headers: dict) -> None:
         new_file.write(r.content.decode("utf-8"))
         r.close()
         new_file.close()
-        
+
         logger.info(f"Updated {fpath} on device.")
     except:
         try:
@@ -111,4 +111,3 @@ def remove_prefix(fpath: str) -> str:
     if fpath.startswith(GIT_SUBFOLDER):
         return fpath[len(GIT_SUBFOLDER) :]
     return fpath
-

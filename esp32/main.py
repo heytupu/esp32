@@ -22,7 +22,9 @@ THING_NAME = f"{CFG["AWS_IOT_core"]["THING_NAME"]}_{str(DEVICE_ID)}"
 # Publishing Topics
 PUB_TOPIC = CFG["AWS_IOT_core"]["TOPIC"]
 # Subscription Topics
-SUB_TOPICS = ["ESP32/all/update/ota", f"ESP32/{THING_NAME}/update/ota"] 
+# SUB_TOPICS = ["ESP32/all/update/ota", f"ESP32/{THING_NAME}/update/ota"]
+SUB_TOPICS = [f"ESP32/{THING_NAME}/update/ota"]
+# Unused: Will be removed in the future.
 SUB_TOPIC = "ESP32/all/update/ota"
 SUB_TOPIC_CONFIG = f"ESP32/{THING_NAME}/update/config"
 SUB_TOPIC_OTA = f"ESP32/{THING_NAME}/update/ota"
@@ -52,7 +54,7 @@ SCD30_PIN = CFG["Sensors"]["SCD30"]["Pin"]
 DS18B20_PIN = CFG["Sensors"]["DS18B20"]["Pin"]
 AM2302_PIN = CFG["Sensors"]["AM2302"]["Pin"]
 
-# Defines the Sensor names. 
+# Defines the Sensor names.
 DS18B20_NAME = CFG["Sensors"]["DS18B20"]["Name"]
 
 
@@ -255,7 +257,6 @@ def data_from_DS18B20():
 def subscribe(mqtt_client: MQTTClient) -> None:
     """Subscribe to all topics from MQTT broker."""
     for topic in SUB_TOPICS:
-        print(topic)
         try:
             mqtt_client.subscribe(topic)
             logger.info(f"Subscribed to topic {topic}")
@@ -274,13 +275,13 @@ def publish(mqtt_client: MQTTClient, topic: str, value: int) -> None:
 
 if __name__ == "__main__":
     mqtt_client = connect_iot_core()
-    
+
     # Sets the correct time otherwise the default of UNIX starting time is used as reference.
     try:
         ntptime.settime()
     except:
         logger.warning("Setting current time failed.")
-    
+
     # Set a time counter.
     starting_time = time.time()
     while True:
@@ -303,8 +304,11 @@ if __name__ == "__main__":
             am2302_data = data_from_AM2302()
             data.update(am2302_data)
 
-        # Check for newly arrived messages via subscription topics
-        mqtt_client.check_msg()
+        try:
+            # Check for newly arrived messages via subscription topics
+            mqtt_client.check_msg()
+        except:
+            logger.warning("Receiving message from broker failed.")
         # Push the data to the MQTT broker in AWS Iot Core.
         publish(mqtt_client, PUB_TOPIC, json.dumps(data))
         # Control the interval of publishing data.

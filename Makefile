@@ -34,7 +34,7 @@ aws-policy:
 	@echo "    Create policy for thing."
 	@aws iot create-policy \
 		--policy-name "$(strip $(THING_NAME))_$(strip $(DEVICE_ID))" \
-    	--policy-document '{"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": ["iot:Connect"], "Resource": ["arn:aws:iot:eu-central-1:193112460689:client/$(strip $(THING_NAME))_$(strip $(DEVICE_ID))"]}, {"Effect": "Allow", "Action": "iot:Publish", "Resource": "arn:aws:iot:eu-central-1:193112460689:topic/$(TOPIC)"}, {"Effect": "Allow", "Action": "iot:Subscribe", "Resource": "arn:aws:iot:eu-central-1:193112460689:topicfilter/ESP32/esp32_$(strip $(DEVICE_ID))/update/ota"}, {"Effect": "Allow", "Action": "iot:Receive", "Resource": "arn:aws:iot:eu-central-1:193112460689:topic/ESP32/esp32_$(strip $(DEVICE_ID))/update/ota"}, {"Effect": "Allow", "Action": "iot:Subscribe", "Resource": "arn:aws:iot:eu-central-1:193112460689:topicfilter/ESP32/all/update/ota"}, {"Effect": "Allow", "Action": "iot:Receive", "Resource": "arn:aws:iot:eu-central-1:193112460689:topic/ESP32/all/update/ota"}]}'
+    	--policy-document '{"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": ["iot:Connect"], "Resource": ["arn:aws:iot:eu-central-1:193112460689:client/$(strip $(THING_NAME))_$(strip $(DEVICE_ID))"]}, {"Effect": "Allow", "Action": "iot:Publish", "Resource": "arn:aws:iot:eu-central-1:193112460689:topic/$(TOPIC)"}, {"Effect": "Allow", "Action": "iot:Subscribe", "Resource": "arn:aws:iot:eu-central-1:193112460689:topicfilter/ESP32/esp32_$(strip $(DEVICE_ID))/update/ota"}, {"Effect": "Allow", "Action": "iot:Receive", "Resource": "arn:aws:iot:eu-central-1:193112460689:topic/ESP32/esp32_$(strip $(DEVICE_ID))/update/ota"}]}'
 
 aws-attach:
 	@echo ""
