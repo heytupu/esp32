@@ -42,11 +42,10 @@ GIT_RAW = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/main/"
 
 def pull(fpath: str, raw_url: str, headers: dict) -> None:
     """Pulls a single file."""
-    r = urequests.get(raw_url, headers=headers)
+    r = urequests.get(raw_url, stream=True, headers=headers)
     try:
         new_file = open(fpath, "w")
         new_file.write(r.content.decode("utf-8"))
-        r.close()
         new_file.close()
 
         logger.info(f"Updated {fpath} on device.")
@@ -56,13 +55,16 @@ def pull(fpath: str, raw_url: str, headers: dict) -> None:
         except:
             logger.error(f"Unable to close {fpath} file during raw file decoding.")
 
+    r.close()
+
 
 def update() -> None:
     """Pulls all the files & overwrites updated files."""
     logger.info("Updating device.")
 
     # Construct the header used for fetching from github.
-    headers = {"User-Agent": "ugit-heytupu"}
+    headers = {"User-Agent": "heytupu"}
+    # headers = {}
     if len(REPO_ACCESS_TOKEN) > 0:
         headers["authorization"] = "bearer %s" % REPO_ACCESS_TOKEN
 
@@ -93,7 +95,7 @@ def pull_git_tree(headers: dict) -> dict:
     rcount = 0
     while True:
         try:
-            r = urequests.get(GIT_TREE_URL, headers=headers)
+            r = urequests.get(GIT_TREE_URL, stream=True, headers=headers)
             j = json.loads(r.content.decode("utf-8"))
         except Exception as e: 
             if isinstance(e, OSError) and r: 
