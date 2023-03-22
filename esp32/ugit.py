@@ -6,6 +6,7 @@ import machine
 import time
 import network
 import logging
+import gc 
 
 # Initiate the logging object.
 logger = logging.getLogger(__name__)
@@ -83,11 +84,26 @@ def update() -> None:
 
 def pull_git_tree(headers: dict) -> dict:
     """Pulls the git tree of the repo."""
+    r, j = None, None
+    gc.collect()
+
     if __debug__:
         logger.debug(f"Sending request to fetch git tree : {GIT_TREE_URL}.")
-    r = urequests.get(GIT_TREE_URL, headers=headers)
-    j = json.loads(r.content.decode("utf-8"))
-    r.close()
+    
+    rcount = 0
+    while True:
+        try:
+            r = urequests.get(GIT_TREE_URL, headers=headers)
+            j = json.loads(r.content.decode("utf-8"))
+        except Exception as e: 
+            if isinstance(e, OSError) and r: 
+                r.close()
+
+        if rcount > 5:
+            break
+        rcount = rcount + 1
+
+    gc.collect()
     return j
 
 
