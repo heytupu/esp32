@@ -112,12 +112,15 @@ def pull_git_tree(headers: dict) -> dict:
 def parse_git_tree(headers: dict) -> list:
     """Parsing the git tree for desired files."""
     tree = pull_git_tree(headers)
-
+    
     # Construct the file list for updating.
     files = list()
-    for i in tree["tree"]:
-        if i["path"].startswith(GIT_SUBFOLDER) and not i["path"] in IGNORE_FILES:
-            files.append(i)
+
+    if tree is not None:
+        if 'tree' in tree:
+            for i in tree["tree"]:
+                if i["path"].startswith(GIT_SUBFOLDER) and not i["path"] in IGNORE_FILES:
+                    files.append(i)
 
     if __debug__:
         logger.debug(f"Files that should be updated : {files}.")
