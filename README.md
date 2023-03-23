@@ -6,7 +6,7 @@
 
 Tupu works with the [ESP32](https://www.espressif.com/en/products/socs/esp32) microcontroller which handles the communication between the sensor and further peripherals. It essentially fetches data from the sensor and streams it to the cloud. The cloud provider is AWS.
 
-AWS provides a service called AWS Iot Core which basically implements a MQTT broker along with device authentication. The MQTT broker sends the data afterwards to the DynamoDB (noSQL) database.
+AWS provides a service called AWS Iot Core which basically implements a MQTT broker along with device authentication. The MQTT broker sends the data afterwards to a database.
 
 All the code that will run on the ESP32 is stored in `esp32/`. Each device receives unique certificates 
 from AWS for authentication and a slightly adjusted `config.json` file where parameters for the individual 
@@ -14,7 +14,22 @@ device can be set.
 
 For installing the whole software in one go, please make sure the **device is plugged** via `/dev/ttyUSB0` and run:
 ```bash
-make esptool && make aws && make ampy
+make esptool && make aws && make ampy certs
+#
+# Fine grained commands
+#
+# For further information run 
+make help
+# Flash device without touching the certificates just use 
+make ampy
+# AWS specific commands
+#
+# Registers the device at AWS IoT Core and creates certificates for it.
+make aws-device  
+# Creates a unique policy for the device.
+make aws-policy   
+# Attaches the certificates to the policy and the policy to the thing.
+make aws-attach   
 ```
 
 For a device working correctly, a WIFI connection must be in place and some AWS certificates 
@@ -65,7 +80,7 @@ Find all the sensors that can be used in the table below.
 | Type  | Sensor | Pins | Additional |
 | ---------------------------- | -------------- | -------------- | -------------- | 
 | Temperature, Humidity | [AM2302/DHT22](https://cdn-shop.adafruit.com/datasheets/Digital+humidity+and+temperature+sensor+AM2302.pdf) | 25 |
-| Pipe Water Temperature  | [DS18B20](https://www.analog.com/media/en/technical-documentation/data-sheets/ds18b20.pdf) | | |
+| Pipe Water Temperature  | [DS18B20](https://www.analog.com/media/en/technical-documentation/data-sheets/ds18b20.pdf) | 25, 26, 27, 14 | |
 | Temperature, Humidity, CO2 | [SCD30](https://wiki.seeedstudio.com/Grove-C02_Temperature_Humidity_Sensor-SCD30/) | 22, 21 | | 
 | Capacitive Soil Moisture | | 34, 33, 32, 31 | |
 
@@ -87,6 +102,8 @@ with the message payload of
 
 The first one only updates a specific device while the latter updates all devices.
 
+**Disclaimer**: Only the specific topic works for a device, but in the future the plan is to add more 
+topics for specific updates.
 
 ## Additional Information
 
