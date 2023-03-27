@@ -56,6 +56,9 @@ AM2302_PIN = CFG["Sensors"]["AM2302"]["Pin"]
 
 # Defines the Sensor names.
 DS18B20_NAME = CFG["Sensors"]["DS18B20"]["Name"]
+#
+# Process Parameters
+RETRY = 10
 
 
 def get_datetime():
@@ -102,11 +105,15 @@ def connect_iot_core() -> MQTTClient:
         logger.debug(f"MQTT Client {mqtt.client_id} connects to {mqtt.server}.")
 
     mqtt.set_callback(message_callback)
-    try:
-        mqtt.connect()
-        logger.info(f"Established connection to MQTT broker at {ENDPOINT}.")
-    except Exception as e:
-        raise Exception(f"Unable to connect to MQTT broker. {e}")
+    r = 0
+    while r < RETRY: 
+        try:
+            mqtt.connect()
+            logger.info(f"Established connection to MQTT broker at {ENDPOINT}.")
+            break
+        except Exception as e:
+            logger.error(f"Unable to connect to MQTT broker. {e}")
+            r = r + 1
 
     # Subscribe to defined topics in order to be able to access the device.
     subscribe(mqtt)
@@ -121,13 +128,13 @@ def data_from_AM2302():
 
     d = dht.DHT22(machine.Pin(AM2302_PIN))
 
-    retry = 0
-    while retry < 5:
+    r = 0
+    while retry < RETRY:
         try:
             d.measure()
             break
         except:
-            retry = retry + 1
+            r = r + 1
 
     logger.info(f"AM2302: Temperature: {d.temperature()} | Humidity: {d.humidity()}")
     return {"temperature": d.temperature(), "humidity": d.humidity()}
