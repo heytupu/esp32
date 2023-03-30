@@ -27,6 +27,7 @@ REPO_ACCESS_TOKEN = ""
 IGNORE_FILES = [
     "esp32/ugit.py",
     "esp32/logging.py",
+    "esp32/ntptime",
     "esp32/configs",
     "esp32/configs/config.json",
     "esp32/cert",
