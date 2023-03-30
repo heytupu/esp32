@@ -26,6 +26,7 @@ REPO_ACCESS_TOKEN = ""
 # Specify the files that are uneffected by OTA updates.
 IGNORE_FILES = [
     "esp32/ugit.py",
+    "esp32/logging.py",
     "esp32/configs",
     "esp32/configs/config.json",
     "esp32/cert",

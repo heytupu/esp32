@@ -3,11 +3,12 @@ import json
 import machine
 import dht
 import network
-import ntptime
+# import ntptime
 import time
 from umqtt.simple import MQTTClient
 import onewire, ds18x20
 
+from ntptime import ntptime
 from scd30 import SCD30
 from boot import CFG, logger
 
@@ -129,7 +130,7 @@ def data_from_AM2302():
     d = dht.DHT22(machine.Pin(AM2302_PIN))
 
     r = 0
-    while retry < RETRY:
+    while r < RETRY:
         try:
             d.measure()
             break
@@ -282,12 +283,17 @@ def publish(mqtt_client: MQTTClient, topic: str, value: int) -> None:
 
 if __name__ == "__main__":
     mqtt_client = connect_iot_core()
-
-    # Sets the correct time otherwise the default of UNIX starting time is used as reference.
-    try:
-        ntptime.settime()
-    except:
-        logger.warning("Setting current time failed.")
+    
+    r = 0
+    while r < 2:
+        # Sets the correct time otherwise the default of UNIX starting time is used as reference.
+        try:
+            ntptime.settime()
+            break
+        except:
+            logger.warning("Setting current time failed.")
+            r = r + 1
+            time.sleep(1)
 
     # Set a time counter.
     starting_time = time.time()
