@@ -110,3 +110,7 @@ topics for specific updates.
 #### Firmware Notes
 
 - Do **not** use **pin 12**. There is an error that can occur when using this particular pin. 
+
+
+#### Repos to watch
+- https://github.com/aws/aws-iot-device-sdk-python-v2
