@@ -129,7 +129,7 @@ def data_from_AM2302():
     d = dht.DHT22(machine.Pin(AM2302_PIN))
 
     r = 0
-    while retry < RETRY:
+    while r < RETRY:
         try:
             d.measure()
             break
