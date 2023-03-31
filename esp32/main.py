@@ -107,7 +107,7 @@ def connect_iot_core() -> MQTTClient:
 
     mqtt.set_callback(message_callback)
     r = 0
-    while r < RETRY: 
+    while True: 
         try:
             mqtt.connect()
             logger.info(f"Established connection to MQTT broker at {ENDPOINT}.")
@@ -115,6 +115,8 @@ def connect_iot_core() -> MQTTClient:
         except Exception as e:
             logger.error(f"Unable to connect to MQTT broker. {e}")
             r = r + 1
+            if r == RETRY:
+                machine.reset()
 
     # Subscribe to defined topics in order to be able to access the device.
     subscribe(mqtt)
@@ -285,7 +287,7 @@ if __name__ == "__main__":
     mqtt_client = connect_iot_core()
     
     r = 0
-    while r < 2:
+    while True:
         # Sets the correct time otherwise the default of UNIX starting time is used as reference.
         try:
             ntptime.settime()
@@ -293,6 +295,8 @@ if __name__ == "__main__":
         except:
             logger.warning("Setting current time failed.")
             r = r + 1
+            if r == RETRY:
+                machine.reset()
             time.sleep(1)
 
     # Set a time counter.

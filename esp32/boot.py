@@ -2,6 +2,7 @@
 from json import load
 import machine
 import network
+import time
 import ugit
 import logging
 
@@ -29,12 +30,17 @@ def connect_wifi() -> None:
     """Establish wifi connection."""
     sta_if = network.WLAN(network.STA_IF)
 
-    if not sta_if.isconnected():
-        logger.info("Connecting to network ...")
-        sta_if.active(True)
-        sta_if.connect(CFG["Network"]["SSID"], CFG["Network"]["PASS"])
-        while not sta_if.isconnected():
-            pass
+    logger.info("Connecting to network ...")
+    r = 0
+    while not sta_if.isconnected():
+        try:
+            sta_if.active(True)
+            sta_if.connect(CFG["Network"]["SSID"], CFG["Network"]["PASS"])
+        except:
+            if r == 12:
+                machine.reset()
+            r = r + 1
+            time.sleep(2)
 
     logger.info(f"Established connection to network : {sta_if.ifconfig()}.")
 
@@ -44,4 +50,4 @@ enable_garbage_collection()
 # Establish WIFI connection.
 connect_wifi()
 # Updating the Device via Github.
-ugit.update()
+# ugit.update()
