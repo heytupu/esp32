@@ -60,6 +60,8 @@ DS18B20_NAME = CFG["Sensors"]["DS18B20"]["Name"]
 #
 # Process Parameters
 RETRY = 10
+# 
+PUB_RETRY = 4
 
 
 def get_datetime():
@@ -301,6 +303,8 @@ if __name__ == "__main__":
 
     # Set a time counter.
     starting_time = time.time()
+    # Message counter
+    msg_c = 0
     while True:
         data = {
             "datetime": get_datetime(),
@@ -326,7 +330,16 @@ if __name__ == "__main__":
             mqtt_client.check_msg()
         except:
             logger.warning("Receiving message from broker failed.")
-        # Push the data to the MQTT broker in AWS Iot Core.
-        publish(mqtt_client, PUB_TOPIC, json.dumps(data))
+        
+        # As umqtt does not offer a simply still connected function this is they 
+        # way around it.
+        try:
+            # Push the data to the MQTT broker in AWS Iot Core.
+            publish(mqtt_client, PUB_TOPIC, json.dumps(data))
+        except:
+            msg_c = msg_c + 1
+            if msg_c == PUB_RETRY:
+                machine.reset()
+        
         # Control the interval of publishing data.
         time.sleep(TIME_INTERVAL)

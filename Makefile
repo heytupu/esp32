@@ -4,7 +4,9 @@
 THING_NAME := esp32
 TOPIC := ESP32/Sensors
 PWD := $(strip $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))) 
-
+#-----------------------------------------------------------
+# ESPTOOL 
+#-----------------------------------------------------------
 esptool:
 	@echo "(1) Flashing precompiled firmware to ESP32 enabling Micropython."
 	@echo ""
@@ -12,7 +14,9 @@ esptool:
 	esptool.py --chip esp32 --port /dev/ttyUSB0 write_flash -z 0x1000 "$(strip $(PWD))/firmware/esp32-20220618-v1.19.1.bin"
 
 DEVICE_ID := $(shell ampy --port /dev/ttyUSB0 run get_device_id.py)
-
+#-----------------------------------------------------------
+# AWS
+#-----------------------------------------------------------
 aws : aws-device aws-policy aws-attach aws-clean 
 
 aws-device:
@@ -48,7 +52,9 @@ aws-clean:
     # Delete cache 
 	@rm "$(strip $(PWD))/esp32/cert/public.pem.key" 
 	@rm "$(strip $(PWD))/logfile.json"
-
+#-----------------------------------------------------------
+# FLASHING using AMPY 
+#-----------------------------------------------------------
 ampy:
 	@echo "(3) Flashing custom software for device $(DEVICE_ID)."
 	@echo ""
@@ -68,8 +74,9 @@ else
     	fi; \
 	done
 endif
-
-
+#-----------------------------------------------------------
+# HELP 
+#-----------------------------------------------------------
 help:
 	@echo ''
 	@echo '  esptool      Flash precompiled firmware that enables Micropython on'
