@@ -348,5 +348,6 @@ if __name__ == "__main__":
 
             # Control the interval of publishing data.
             time.sleep(TIME_INTERVAL)
+            gc.collect()
         else:
             sta_if = connect_wifi()
