@@ -3,14 +3,14 @@ import json
 import machine
 import dht
 import network
-# import ntptime
 import time
 from umqtt.simple import MQTTClient
 import onewire, ds18x20
+import gc
 
 from ntptime import ntptime
 from scd30 import SCD30
-from boot import CFG, logger
+from boot import CFG, sta_if, connect_wifi, logger
 
 # Global settings from config file.
 #
@@ -61,7 +61,7 @@ DS18B20_NAME = CFG["Sensors"]["DS18B20"]["Name"]
 # Process Parameters
 RETRY = 10
 # 
-PUB_RETRY = 4
+PUB_RETRY = 5
 
 
 def get_datetime():
@@ -287,6 +287,7 @@ def publish(mqtt_client: MQTTClient, topic: str, value: int) -> None:
 
 if __name__ == "__main__":
     mqtt_client = connect_iot_core()
+    gc.enable()
     
     r = 0
     while True:
@@ -306,40 +307,46 @@ if __name__ == "__main__":
     # Message counter
     msg_c = 0
     while True:
-        data = {
-            "datetime": get_datetime(),
-            "device_id": DEVICE_ID,
-            "location": DEVICE_LOCATION,
-        }
-        # Gather data from the sensor specified.
-        if SCD30_BOOLEAN:
-            scd30_data = data_from_SCD30()
-            data.update(scd30_data)
-        if MOISTURE_BOOLEAN:
-            moisture_data = moisture_sensor_data()
-            data.update(moisture_data)
-        if DS18B20_BOOLEAN:
-            ds18B20_data = data_from_DS18B20()
-            data.update(ds18B20_data)
-        if AM2302_BOOLEAN:
-            am2302_data = data_from_AM2302()
-            data.update(am2302_data)
+        # Make sure WIFI still connected.
+        if sta_if.isconnected():
+            data = {
+                "datetime": get_datetime(),
+                "device_id": DEVICE_ID,
+                "location": DEVICE_LOCATION,
+            }
+            # Gather data from the sensor specified.
+            if SCD30_BOOLEAN:
+                scd30_data = data_from_SCD30()
+                data.update(scd30_data)
+            if MOISTURE_BOOLEAN:
+                moisture_data = moisture_sensor_data()
+                data.update(moisture_data)
+            if DS18B20_BOOLEAN:
+                ds18B20_data = data_from_DS18B20()
+                data.update(ds18B20_data)
+            if AM2302_BOOLEAN:
+                am2302_data = data_from_AM2302()
+                data.update(am2302_data)
 
-        try:
-            # Check for newly arrived messages via subscription topics
-            mqtt_client.check_msg()
-        except:
-            logger.warning("Receiving message from broker failed.")
-        
-        # As umqtt does not offer a simply still connected function this is they 
-        # way around it.
-        try:
-            # Push the data to the MQTT broker in AWS Iot Core.
-            publish(mqtt_client, PUB_TOPIC, json.dumps(data))
-        except:
-            msg_c = msg_c + 1
-            if msg_c == PUB_RETRY:
-                machine.reset()
-        
-        # Control the interval of publishing data.
-        time.sleep(TIME_INTERVAL)
+            try:
+                # Check for newly arrived messages via subscription topics
+                mqtt_client.check_msg()
+            except:
+                logger.warning("Receiving message from broker failed.")
+            
+            # As umqtt does not offer a simply still connected function this is they 
+            # way around it.
+            try:
+                # Push the data to the MQTT broker in AWS Iot Core.
+                publish(mqtt_client, PUB_TOPIC, json.dumps(data))
+                msg_c = 0
+            except:
+                logger.warning(f"Failed to publish to {PUB_TOPIC}. Retry {msg_c}.")
+                if msg_c == PUB_RETRY:
+                    machine.reset()
+                msg_c = msg_c + 1
+
+            # Control the interval of publishing data.
+            time.sleep(TIME_INTERVAL)
+        else:
+            sta_if = connect_wifi()

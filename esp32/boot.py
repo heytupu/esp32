@@ -43,11 +43,12 @@ def connect_wifi() -> None:
             time.sleep(2)
 
     logger.info(f"Established connection to network : {sta_if.ifconfig()}.")
+    return sta_if
 
 
 # Pull out the sluggish.
 enable_garbage_collection()
 # Establish WIFI connection.
-connect_wifi()
+sta_if = connect_wifi()
 # Updating the Device via Github.
 # ugit.update()
