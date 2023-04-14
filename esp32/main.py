@@ -69,7 +69,10 @@ def get_datetime():
     This way, one does not need to solely rely upon the timestamp."""
     # Need to update this so it pulls the time from the internet connection.
     offset = UTC_OFFSET * 60**2
-    year, month, day, hour, mins, secs, _, _ = time.localtime(time.time() + offset)
+    try: 
+        year, month, day, hour, mins, secs, _, _ = time.localtime(time.time() + offset)
+    except:
+        year, month, day, hour, mins, secs, _, _ = 0, 0, 0, 0, 0, 0
 
     datetime = "{}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}".format(
         year, month, day, hour, mins, secs
@@ -134,15 +137,19 @@ def data_from_AM2302():
     d = dht.DHT22(machine.Pin(AM2302_PIN))
 
     r = 0
+    t = 0.0
+    h = 0.0
     while r < RETRY:
         try:
             d.measure()
+            t = d.temperature()
+            h = d.humidity()
             break
         except:
             r = r + 1
 
-    logger.info(f"AM2302: Temperature: {d.temperature()} | Humidity: {d.humidity()}")
-    return {"temperature": d.temperature(), "humidity": d.humidity()}
+    logger.info(f"AM2302: Temperature: {t} | Humidity: {h}")
+    return {"temperature": t, "humidity": h}
 
 
 def data_from_SCD30():
@@ -350,4 +357,6 @@ if __name__ == "__main__":
             time.sleep(TIME_INTERVAL)
             gc.collect()
         else:
-            sta_if = connect_wifi()
+            # sta_if = connect_wifi()
+            logger.warning("No WIFI. Machine reset next.")
+            machine.reset()
