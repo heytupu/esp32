@@ -40,7 +40,7 @@ def connect_wifi() -> None:
             if r == 12:
                 machine.reset()
             r = r + 1
-            time.sleep(2)
+            time.sleep(1)
 
     logger.info(f"Established connection to network : {sta_if.ifconfig()}.")
     return sta_if
@@ -52,3 +52,7 @@ enable_garbage_collection()
 sta_if = connect_wifi()
 # Updating the Device via Github.
 # ugit.update()
+# WebRepl
+# import webrepl
+# webrepl.start()
+

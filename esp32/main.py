@@ -61,7 +61,13 @@ DS18B20_NAME = CFG["Sensors"]["DS18B20"]["Name"]
 # Process Parameters
 RETRY = 10
 # 
-PUB_RETRY = 5
+PUB_RETRY = 3
+
+
+def log_message(msg: str) -> None:
+    """Write log messages to file."""
+    with open("log.txt", "a"):
+        logfile.write(msg)
 
 
 def get_datetime():
@@ -147,6 +153,8 @@ def data_from_AM2302():
             break
         except:
             r = r + 1
+            time.sleep_ms(200) 
+            logger.warning("Could not measure with AM2302. Retry.")
 
     logger.info(f"AM2302: Temperature: {t} | Humidity: {h}")
     return {"temperature": t, "humidity": h}
@@ -283,14 +291,20 @@ def subscribe(mqtt_client: MQTTClient) -> None:
             logger.warning(f"Failed to subscribe to {topic}. {e}")
 
 
+# def publish(mqtt_client: MQTTClient, topic: str, value: int) -> None:
+#     """Publish the data to the MQTT broker."""
+#     try:
+#         mqtt_client.publish(topic, value)
+#         logger.info(f"Published value {value} to topic '{topic}'")
+#     except Exception as error:
+#         logger.warning(f"Failed to publish sensor data for topic '{topic}'. {error}")
+
+
 def publish(mqtt_client: MQTTClient, topic: str, value: int) -> None:
     """Publish the data to the MQTT broker."""
-    try:
-        mqtt_client.publish(topic, value)
-        logger.info(f"Published value {value} to topic '{topic}'")
-    except Exception as error:
-        logger.warning(f"Failed to publish sensor data for topic '{topic}'. {error}")
-
+    mqtt_client.publish(topic, value)
+    logger.info(f"Published value {value} to topic '{topic}'")
+ 
 
 if __name__ == "__main__":
     mqtt_client = connect_iot_core()
@@ -350,6 +364,7 @@ if __name__ == "__main__":
             except:
                 logger.warning(f"Failed to publish to {PUB_TOPIC}. Retry {msg_c}.")
                 if msg_c == PUB_RETRY:
+                    logger.warning(f"Publishing to broker failed {PUB_RETRY} times. Machine reset next.")
                     machine.reset()
                 msg_c = msg_c + 1
 
