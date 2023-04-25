@@ -68,10 +68,8 @@ pip install adafruit-ampy
 
 ## Configurations 
 
-Please find the relevant pins for the specific sensors in the config file `esp32/configs/config.json`.
-For enabling the measurement of a specific sensors enable them in the config. 
-If the sensor is not present, software has to be added.
-
+Please find the relevant pins for the specific sensors in the config file `esp32/configs/config.json`. For enabling the measurement of a specific sensors enable them in the config. 
+If the sensor is not present, driver software has to be added.
 
 ## Sensors 
 
@@ -85,11 +83,19 @@ Find all the sensors that can be used in the table below.
 | Capacitive Soil Moisture | | 34, 33, 32, 31 | |
 
 
+### Calibration
+
+- **SCD30**
+
+  For calibrating the SCD30 sensor you can use one of the two functions (`set_automatic_recalibration` or `set_forced_recalibration`) in the `scd30.py` module. The CO2 sensor has two modes of calibration: FRC (Forced Recalibration) or ASC (Automatic Self-Calibration). The process is to bring the sensor into a controlled environment (e.g. outside) and set the known value at that environment (e.g. 400ppm).
+
 ## Remote Control & Updating
+
 The devices once connected to the AWS Iot Core can be controlled and updated via publishing a message 
 to the mqtt broker. 
 
 #### OTA 
+
 To run a **machine.reset()** publish a message to one of the two device topics:
 
 - `/ESP32/esp_${DEVICE_ID}/update/ota`
@@ -110,7 +116,6 @@ topics for specific updates.
 #### Firmware Notes
 
 - Do **not** use **pin 12**. There is an error that can occur when using this particular pin. 
-
 
 #### Repos to watch
 - https://github.com/aws/aws-iot-device-sdk-python-v2
