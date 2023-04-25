@@ -163,7 +163,8 @@ def data_from_AM2302():
 def data_from_SCD30():
     """Connect to SCD30 and return temperature, humidity, and co2."""
     # Set up i2c protocol for the SCD30
-    i2c = machine.SoftI2C(scl=machine.Pin(22), sda=machine.Pin(21), freq=10000)
+    i2c = machine.SoftI2C(scl=machine.Pin(SCD30_PIN[0]), sda=machine.Pin(SCD30_PIN[1]), freq=10000)
+
     try:
         # If SCD30 has not been connected attempt to connect to it.
         scd30 = SCD30(i2c, 0x61)
@@ -172,6 +173,7 @@ def data_from_SCD30():
             "Failed to connect to SCD30. Please make sure the sensor is connected."
         )
 
+    # scd30.set_forced_recalibration(CFG["Sensors"]["SCD30"]["CO2_Value"])
     missingSCD30 = False
     # Try to take measurement from scd30
     try:

@@ -1,7 +1,7 @@
 {
     "Network" : {
         "SSID" : "",
-        "PASS" : "",
+        "PASS" : ""
     },
     "SCD30_offsets" : {
         "tempOffset": -2.0,
@@ -10,8 +10,8 @@
     },
     "AWS_IOT_core" : {
         "THING_NAME" : "esp32",
-        "TOPIC" : "",
-        "ENDPOINT" : "",
+        "TOPIC" : "ESP32/Sensors",
+        "ENDPOINT" : "a2l5xrvloqeqad-ats.iot.eu-central-1.amazonaws.com",
         "ROOT_CA" : "cert/AmazonRootCA1.pem",
         "CERTIFICATE" : "cert/certificate.pem.crt",
         "PRIVATE_KEY" : "cert/private.pem.key"
@@ -24,25 +24,26 @@
     "Sensors" : {
         "SCD30" : {
             "Pin" : [22, 21],
-            "Boolean" : 0
+            "Boolean" : 0,
+            "CO2_Value" : 0
             },
         "Moisture_Sensor" : {
-            "Pin" : [32, 33, 34, 35],
+            "Pin" : [31, 32, 34, 35],
             "Boolean" : 0
             },
         "DS18B20" : {
-            "Pin" : [0, 0, 0, 0],
+            "Pin" : [25, 26, 27, 14],
             "Boolean" : 0,
             "Name" : ["pipe_sensor_1", "pipe_sensor_2", "pipe_sensor_3", "pipe_sensor_4"]
             },
         "AM2302" : {
             "Pin" : 25,
-            "Boolean" : 1
+            "Boolean" : 0
             }
     },
     "Device_settings" : {
         "Time_Interval" : 60,
         "location": "",
-        "UTC_Offset" : 1
+        "UTC_Offset" : 2
     }
 }
