@@ -44,6 +44,6 @@
     "Device_settings" : {
         "Time_Interval" : 60,
         "location": "",
-        "UTC_Offset" : 2
+        "UTC_Offset" : 1
     }
 }

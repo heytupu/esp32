@@ -75,12 +75,12 @@ If the sensor is not present, driver software has to be added.
 
 Find all the sensors that can be used in the table below.
 
-| Type  | Sensor | Pins | Additional |
-| ---------------------------- | -------------- | -------------- | -------------- | 
+| Type  | Sensor | Pins |
+| ---------------------------- | -------------- | -------------- |
 | Temperature, Humidity | [AM2302/DHT22](https://cdn-shop.adafruit.com/datasheets/Digital+humidity+and+temperature+sensor+AM2302.pdf) | 25 |
-| Pipe Water Temperature  | [DS18B20](https://www.analog.com/media/en/technical-documentation/data-sheets/ds18b20.pdf) | 25, 26, 27, 14 | |
-| Temperature, Humidity, CO2 | [SCD30](https://wiki.seeedstudio.com/Grove-C02_Temperature_Humidity_Sensor-SCD30/) | 22, 21 | | 
-| Capacitive Soil Moisture | | 34, 33, 32, 31 | |
+| Pipe Water Temperature  | [DS18B20](https://www.analog.com/media/en/technical-documentation/data-sheets/ds18b20.pdf) | 25, 26, 27, 14 |
+| Temperature, Humidity, CO2 | [SCD30](https://wiki.seeedstudio.com/Grove-C02_Temperature_Humidity_Sensor-SCD30/) | 22, 21 |
+| Capacitive Soil Moisture | [Soil Moisture Sensor Hygrometer](https://www.az-delivery.de/en/products/bodenfeuchte-sensor-modul-v1-2) | 34, 33, 32, 31 |
 
 
 ### Calibration
@@ -90,6 +90,8 @@ Find all the sensors that can be used in the table below.
   For calibrating the SCD30 sensor you can use one of the two functions (`set_automatic_recalibration` or `set_forced_recalibration`) in the `scd30.py` module. The CO2 sensor has two modes of calibration: FRC (Forced Recalibration) or ASC (Automatic Self-Calibration). The process is to bring the sensor into a controlled environment (e.g. outside) and set the known value at that environment (e.g. 400ppm).
 
 ## Remote Control & Updating
+
+**This function is not in use but could be add by using `ugit`**.
 
 The devices once connected to the AWS Iot Core can be controlled and updated via publishing a message 
 to the mqtt broker. 
